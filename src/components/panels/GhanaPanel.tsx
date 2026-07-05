@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, type PresidentialNational, type ParliamentarySummary } from "@/lib/api";
+import { CURRENT_ELECTION_CODE } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
 
-export default function GhanaPanel({ electionCode }: { electionCode: string }) {
+export default function GhanaPanel() {
   const [national, setNational] = useState<PresidentialNational | null>(null);
   const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -11,20 +12,20 @@ export default function GhanaPanel({ electionCode }: { electionCode: string }) {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.presidentialNational(electionCode).catch(() => null),
-      api.parliamentarySummary(electionCode).catch(() => null),
+      api.presidentialNational(CURRENT_ELECTION_CODE).catch(() => null),
+      api.parliamentarySummary(CURRENT_ELECTION_CODE).catch(() => null),
     ]).then(([n, s]) => {
       setNational(n);
       setSeatSummary(s);
       setLoading(false);
     });
-  }, [electionCode]);
+  }, []);
 
   return (
     <div id="panel-ghana">
       <div className="ghana-status-bar">
         <span className="ghana-panel-title">🇬🇭 NATIONAL SUMMARY</span>
-        <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : electionCode}</span>
+        <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : CURRENT_ELECTION_CODE}</span>
       </div>
       <div style={{ padding: "0 0 80px" }}>
         {national && (
@@ -64,7 +65,7 @@ export default function GhanaPanel({ electionCode }: { electionCode: string }) {
         )}
 
         {!national && !seatSummary && !loading && (
-          <div className="no-results">No national data available for {electionCode} yet.</div>
+          <div className="no-results">No national data available for {CURRENT_ELECTION_CODE} yet.</div>
         )}
       </div>
     </div>

@@ -57,6 +57,7 @@ export interface ConstituencySeatResult {
 }
 export interface ConstituencyGeo {
   id: string; name: string; ecCode: string; region: { shortName: string };
+  _count?: { pollingStations: number };
 }
 
 export const api = {

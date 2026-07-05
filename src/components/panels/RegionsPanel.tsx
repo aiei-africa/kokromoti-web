@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, type Region, type RegionResults } from "@/lib/api";
+import { CURRENT_ELECTION_CODE } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
 
 export default function RegionsPanel({
-  electionType, electionCode,
-}: { electionType: "presidential" | "parliamentary"; electionCode: string }) {
+  electionType,
+}: { electionType: "presidential" | "parliamentary" }) {
   const [regions, setRegions] = useState<Region[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [regionData, setRegionData] = useState<RegionResults | null>(null);
@@ -23,7 +24,7 @@ export default function RegionsPanel({
     setExpandedId(region.id);
     setRegionData(null);
     try {
-      const data = await api.regionResults(region.id, electionCode, electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY");
+      const data = await api.regionResults(region.id, CURRENT_ELECTION_CODE, electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY");
       setRegionData(data);
     } catch {
       setRegionData(null);

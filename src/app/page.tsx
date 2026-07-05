@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
-import { api, type Election } from "@/lib/api";
+import { useState } from "react";
 import TopBar from "@/components/TopBar";
 import HeaderStack from "@/components/HeaderStack";
 import BottomNav, { type NavPanel } from "@/components/BottomNav";
@@ -8,37 +7,19 @@ import SplashScreen from "@/components/SplashScreen";
 import ResultsPanel from "@/components/panels/ResultsPanel";
 import GhanaPanel from "@/components/panels/GhanaPanel";
 import RegionsPanel from "@/components/panels/RegionsPanel";
-
-// Historical elections only for this phase — 2020/2024 join once that data
-// is brought up to the same standard as 1996-2016; 2028 is a distinct,
-// later phase (live collation, not applicable to historical browsing).
-const AVAILABLE_ELECTIONS = ["2016", "2012", "2008", "2008R", "2004", "2000", "2000R", "1996"];
+import { CURRENT_ELECTION_CODE } from "@/lib/results";
 
 export default function HomePage() {
   const [showSplash, setShowSplash] = useState(true);
   const [navPanel, setNavPanel] = useState<NavPanel>("results");
   const [electionType, setElectionType] = useState<"presidential" | "parliamentary">("presidential");
-  const [electionCode, setElectionCode] = useState("2016");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [elections, setElections] = useState<Election[]>([]);
-
-  useEffect(() => {
-    api.elections().then((all) =>
-      setElections(all.filter((e) => AVAILABLE_ELECTIONS.includes(e.code)))
-    );
-  }, []);
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <>
-      {/* Rendered on top, doesn't block the app underneath from mounting and
-          fetching data — by the time the splash fades out, real data is
-          usually already loaded, rather than making the user wait twice
-          (once for the splash, then again for the actual content). */}
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
 
-      {/* app-shell: the new max-width/centering wrapper for laptop+TV tiers.
-          On phones it's a no-op (full width, matching v10 exactly); larger
-          breakpoints (defined at the end of globals.css) cap and center it. */}
       <div className="app-shell">
         <HeaderStack>
           <TopBar
@@ -49,32 +30,37 @@ export default function HomePage() {
 
           {searchOpen && (
             <div className="search-bar">
-              <input className="search-input" type="text" placeholder="Search constituency..." />
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search constituency..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
             </div>
           )}
 
+          {/* No election-year selector, by design — this build shows only the
+              current election (CURRENT_ELECTION_CODE). Older years become
+              reachable later via a constituency's Hist. Trend tab in its
+              drilldown, not a top-level dropdown. */}
           <div className="date-bar">
             <div className="election-badge historical">
               <div className="live-dot" />
               HISTORICAL RECORD
             </div>
-            <select
-              value={electionCode}
-              onChange={(e) => setElectionCode(e.target.value)}
-              style={{ background: "transparent", border: "none", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
-            >
-              {AVAILABLE_ELECTIONS.map((code) => (
-                <option key={code} value={code} style={{ color: "#000" }}>
-                  {code} General Election
-                </option>
-              ))}
-            </select>
+            <span style={{ fontSize: "inherit", color: "inherit" }}>
+              {CURRENT_ELECTION_CODE} General Election
+            </span>
           </div>
         </HeaderStack>
 
         <div className="content">
           <div className={`panel ${navPanel === "results" ? "active" : ""}`}>
-            {navPanel === "results" && <ResultsPanel electionType={electionType} electionCode={electionCode} />}
+            {navPanel === "results" && (
+              <ResultsPanel electionType={electionType} searchQuery={searchQuery} />
+            )}
           </div>
           <div className={`panel ${navPanel === "live" ? "active" : ""}`}>
             {navPanel === "live" && (
@@ -92,10 +78,10 @@ export default function HomePage() {
             )}
           </div>
           <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
-            {navPanel === "regions" && <RegionsPanel electionType={electionType} electionCode={electionCode} />}
+            {navPanel === "regions" && <RegionsPanel electionType={electionType} />}
           </div>
           <div className={`panel ${navPanel === "ghana" ? "active" : ""}`}>
-            {navPanel === "ghana" && <GhanaPanel electionCode={electionCode} />}
+            {navPanel === "ghana" && <GhanaPanel />}
           </div>
         </div>
 
