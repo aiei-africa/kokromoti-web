@@ -1,0 +1,664 @@
+
+
+  /* ════════════════════════════════════════════════════════════════════════
+     MOBILE-FIRST RESPONSIVE SYSTEM
+     Fluid layout: everything scales to the actual device screen width.
+     Font scale anchored to 16px base. Touch targets ≥ 44px. No max-width.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  /* Base reset */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+  /* Disable text selection, long-press callout, tap highlight across entire app */
+  * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Re-enable selection only in text inputs */
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* ── FLUID FONT SCALE ─────────────────────────────────────────────────
+     Uses vw so text grows proportionally with screen width.
+     Clamped so it never gets too small (320px phone) or too large (tablet).
+  */
+  .logo-text         { font-size: clamp(1.1rem, 5.5vw, 1.6rem); }
+  .region-name       { font-size: clamp(0.85rem, 3.8vw, 1.05rem); }
+  .constituency-name { font-size: clamp(0.8rem,  3.2vw, 0.95rem); }
+  .candidate-pct     { font-size: clamp(0.85rem, 3.8vw, 1.05rem); min-width: 11vw; }
+  .candidate-name    { font-size: clamp(0.7rem,  3vw,   0.88rem); }
+  .election-tab      { font-size: clamp(0.6rem,  2.6vw, 0.75rem); }
+  .nav-label         { font-size: clamp(0.55rem, 2.2vw, 0.7rem); }
+  .region-count      { font-size: clamp(0.6rem,  2.4vw, 0.75rem); }
+  .declared-badge    { font-size: clamp(0.5rem,  2vw,   0.62rem); }
+  .stations-badge    { font-size: clamp(0.55rem, 2.2vw, 0.68rem); }
+  .party-pill        { font-size: clamp(0.5rem,  2vw,   0.62rem); width: clamp(28px, 7vw, 36px); }
+
+  /* ── FLUID SPACING ──────────────────────────────────────────────────── */
+  .constituency-row  { padding: 2.5vw 4vw; }
+  .region-header     { padding: 2.5vw 4vw; }
+  .date-bar          { padding: 2vw 4vw; }
+  .search-bar        { padding: 2.5vw 4vw; }
+  .back-bar          { padding: 2.5vw 4vw; }
+
+  /* ── TOUCH TARGETS ──────────────────────────────────────────────────── */
+  .star-btn, .region-star-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .icon-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .election-tab { min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; flex: 1; }
+  .nav-item { flex: 1; min-height: 56px; padding: 8px 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  /* ── FULL-WIDTH LAYOUT BLOCKS ────────────────────────────────────────── */
+  #appRoot, .topbar, .date-bar, .search-bar, .back-bar,
+  .tap-hint, .panel, .content { width: 100%; }
+
+  /* Content area must not be hidden behind bottom nav */
+  .content { padding-bottom: 70px; }
+
+  /* ═══════════════════════════════════════════
+     DzataRadioX ColorPack — applied to Kokromoti
+     Ayivi Solutions Ltd.
+     ═══════════════════════════════════════════ */
+  :root {
+    /* Deep Space Backgrounds */
+    --bg:       #080C14;   /* = --deep */
+    --bg2:      #0E1420;   /* = --surface */
+    --bg3:      #131A28;   /* = --card */
+    --bg4:      #192035;   /* = --card2 */
+    /* Gold */
+    --gold:     #F0A500;
+    --gold-lite:#FFD166;
+    --gold-dim: #7A5200;
+    /* Text */
+    --white:    #E4EAF8;   /* = --text */
+    --muted:    #5C6E8A;   /* = --muted */
+    --text2:    #A8B4CC;   /* = --text2 */
+    /* Borders */
+    --border:   #1F2C45;
+    --border2:  #263550;
+    /* Signals */
+    --red:      #FF3B3B;
+    --red-on:   #FF2D55;   /* = --on-air, used for LIVE badge */
+    --green:    #00E676;
+    --green-dark:#00873F;
+    --orange:   #FF9100;
+    --blue:     #2979FF;
+    --blue-lite:#448AFF;
+    --cyan:     #00E5FF;
+    --purple:   #AA00FF;
+    /* Party colours — unchanged (Ghana identity) */
+    --ndc:      #1B6B3A; --ndc-light:#2A9E58; --ndc-bg:#0D2E1A;
+    --npp:      #003082; --npp-light:#1A56C4; --npp-bg:#05163A;
+    /* UI state colours */
+    --star-on:  #F0A500; --star-off:  #1F2C45;
+    --fav-region-bg:#0E1420;
+    --fav-pres-pill-bg:#1A1000;
+    --fav-parl-pill-bg:#0A1428;
+    --oth-pill-bg:#131A28; --oth-pill-color:#A8B4CC; --oth-pill-border:#1F2C45;
+    --oth-bar:  #263550;
+    --swing-bg: #131A28;
+    --bell-bg:  #0A1A0A; --bell-color:#00E676; --bell-border:#00873F;
+    /* Layout tokens */
+    --radius:   12px;
+    --radius-sm:8px;
+  }
+  :root.day-mode {
+    --bg:#F0F2F8; --bg2:#E2E6F0; --bg3:#D4DAEC; --bg4:#C6CDE4;
+    --gold:#B8860B; --gold-dim:#8B6508; --red:#FF3B3B; --red-on:#FF2D55;
+    --white:#080C14; --muted:#4A5278; --text2:#5C6E8A; --border:#B8C0D8; --border2:#A0AAC8;
+    --ndc:#1B6B3A; --ndc-light:#1A7A42; --ndc-bg:#D4EFE0;
+    --npp:#003082; --npp-light:#1A56C4; --npp-bg:#D0DEFA;
+    --star-on:#B8860B; --star-off:#B8C0D8;
+    --fav-region-bg:#D4DAEC;
+    --fav-pres-pill-bg:#FFF8E1;
+    --fav-parl-pill-bg:#E8F0FE;
+    --oth-pill-bg:#E8E8F0; --oth-pill-color:#555577; --oth-pill-border:#B0B0CC;
+    --oth-bar:#9999BB;
+    --swing-bg:#FFF8E1;
+    --bell-bg:#E0F8EC; --bell-color:#1A7A42; --bell-border:#2A9E58;
+  }
+
+  /* ── DAY MODE EXPLICIT TEXT OVERRIDES ── */
+  .day-mode .streaming-label { color:#1A7A42 }
+  .day-mode .streaming-dot   { background:#1A7A42; box-shadow:0 0 5px #1A7A42 }
+  .day-mode .election-badge  { background:var(--red-on); color:#fff }
+  .day-mode .live-dot        { background:#fff }
+  .day-mode .ps-check        { color:var(--white) }
+  .day-mode .fav-tab.active.parl { color:var(--blue-lite); border-bottom-color:var(--blue-lite) }
+  .day-mode .dd-h2h-pct.oth,
+  .day-mode .dd-cand-pct.oth,
+  .day-mode .dd-seat-num.oth { color:var(--oth-pill-color) }
+  .day-mode .nav-bar         { background:var(--muted) }
+  .day-mode .nav-item.active .nav-bar { background:var(--gold) }
+  .day-mode .nav-results-icon { border-color:var(--muted) }
+  .day-mode .nav-item.active .nav-results-icon { border-color:var(--gold) }
+  .day-mode .bottom-nav      { background:var(--bg2); border-top:1px solid var(--border) }
+  .day-mode .drilldown-overlay,
+  .day-mode .reg-drilldown-overlay { background:var(--bg) }
+  .day-mode .dd-topbar,
+  .day-mode .rdd-topbar      { background:var(--bg2) }
+  .day-mode .dd-tab          { color:var(--muted) }
+  .day-mode .dd-tab.active   { color:var(--gold); border-bottom-color:var(--gold) }
+  .day-mode .rdd-tab         { color:var(--muted) }
+  .day-mode .rdd-tab.active  { color:var(--gold); border-bottom-color:var(--gold) }
+  .day-mode .dd-hist-tab     { color:var(--muted) }
+  .day-mode .dd-hist-tab.active { color:var(--gold); border-bottom-color:var(--gold) }
+  .day-mode .rdd-el-tab      { color:var(--muted) }
+  .day-mode .rdd-el-tab.active { color:var(--gold); border-bottom-color:var(--gold) }
+  .day-mode .dd-h2h-name     { color:var(--muted) }
+  .day-mode .dd-h2h-year-label { color:var(--gold) }
+  .day-mode .dd-profile-hdr  { color:var(--gold); background:var(--bg3) }
+  .day-mode .dd-news-headline { color:var(--white) }
+  .day-mode .dd-news-source  { color:var(--gold) }
+  .day-mode .dd-seat-label   { color:var(--muted) }
+  .day-mode .reg-pres-pct.ndc-col { color:var(--ndc-light) }
+  .day-mode .reg-pres-pct.npp-col { color:var(--npp-light) }
+  .day-mode .region-header   { background:var(--bg3) }
+  .day-mode .fav-region-header { background:var(--fav-region-bg) }
+  .day-mode .constituency-row { background:var(--bg) }
+  .day-mode .constituency-row:active { background:var(--bg3) }
+  .day-mode .ps-card         { background:var(--bg) }
+  .day-mode .ps-card:active  { background:var(--bg3) }
+  .day-mode .reg-card        { background:var(--bg2); border-color:var(--border) }
+  .day-mode .feed-filters    { background:var(--bg2) }
+  .day-mode .filter-pill     { background:var(--bg3); color:var(--muted); border-color:var(--border) }
+  .day-mode .filter-pill.active { background:var(--gold); color:var(--bg); border-color:var(--gold) }
+  .day-mode .filter-pill.f-ndc.active { background:var(--ndc-light); color:#fff }
+  .day-mode .filter-pill.f-npp.active { background:var(--npp-light); color:#fff }
+  *,body{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  /* ColorPack font stack: Nunito body, Rajdhani display, JetBrains Mono data */
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;margin:0;padding:0;overflow-x:hidden;width:100%;}
+  /* Scanline overlay — ColorPack signature */
+  body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.012) 2px,rgba(255,255,255,0.012) 4px);pointer-events:none;z-index:9999}
+
+  /* ── TOPBAR ── */
+  .topbar{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 4vw 0;width:100%;box-sizing:border-box}
+  .topbar::after{content:'';position:absolute;bottom:-1px;left:0;width:80px;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+  .topbar-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .logo-area{display:flex;align-items:center;gap:8px}
+  .logo-thumb{width:34px;height:34px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;color:var(--bg);letter-spacing:.04em;box-shadow:0 0 18px rgba(240,165,0,0.35)}
+  .logo-text{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:3px;color:var(--white)}
+  .logo-text span{color:var(--gold)}
+  .topbar-icons{display:flex;gap:16px;align-items:center}
+  .icon-btn{background:none;border:none;color:var(--white);font-size:20px;cursor:pointer;padding:4px}
+  .election-tabs{display:flex}
+  .election-tab{flex:1;text-align:center;padding:8px 0;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;text-transform:uppercase}
+  .election-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+  /* ── DATE BAR ── */
+  .date-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
+  .election-badge{background:var(--red-on);color:white;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
+  .election-badge.historical{background:var(--bg4);color:var(--gold-lite);border:1px solid var(--gold-dim)}
+  .election-badge.historical .live-dot{background:var(--gold-lite);animation:none}
+  .live-dot{width:6px;height:6px;background:white;border-radius:50%;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .election-info{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);font-weight:500}
+
+  /* ── SEARCH ── */
+  .search-bar{display:none;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+  .search-bar.open{display:flex}
+  .search-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--white);font-family:'Nunito',sans-serif;font-size:14px;outline:none}
+  .search-input::placeholder{color:var(--muted)}
+  .search-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,165,0,0.15)}
+
+  /* ── BACK BAR ── */
+  .back-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);cursor:pointer}
+  .back-bar.visible{display:flex}
+  .back-arrow{font-size:18px;color:var(--gold)}
+  .back-label{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--gold);flex:1}
+  .back-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+  .tap-hint{text-align:center;padding:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg2);border-bottom:1px solid var(--border);letter-spacing:.5px}
+
+  /* ── PANELS ── */
+  .content{padding-bottom:80px}
+  .panel{display:none}
+  .panel.active{display:block}
+
+  /* ── RESULTS: REGION / CONSTITUENCY ── */
+  .region-header{display:flex;align-items:center;gap:10px;padding:10px 16px 8px;background:var(--bg3);border-bottom:1px solid var(--border);position:sticky;top:var(--topbar-h,97px);z-index:50;cursor:pointer;user-select:none}
+  .region-header:active{background:var(--bg4)}
+  .fav-region-master{display:flex;align-items:center;gap:8px;padding:10px 16px 8px;background:var(--fav-region-bg);border-bottom:1px solid var(--border)}
+  .fav-region-master-text{font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold)}
+  .fav-con-header{display:flex;align-items:center;gap:8px;padding:10px 16px 8px;background:var(--bg3);border-bottom:1px solid var(--border)}
+  .fav-con-header-text{font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold)}
+  .fav-region-header{display:flex;align-items:center;gap:10px;padding:10px 16px 8px;background:var(--fav-region-bg);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+  .fav-region-header:active{background:var(--bg4)}
+  .region-flag{width:28px;height:28px;border-radius:6px;overflow:hidden;flex-shrink:0}
+  .ghana-flag{width:100%;height:100%;display:flex;flex-direction:column}
+  .flag-r{background:#006B3F;flex:1}.flag-g{background:#D4A017;flex:1;position:relative}.flag-b{background:#CE1126;flex:1}
+  .flag-star{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#000;font-size:8px;line-height:1}
+  .region-name{font-family:'Rajdhani',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--gold);flex:1}
+  .region-count{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-right:8px}
+  .region-chevron{font-size:12px;color:var(--muted);transition:transform .25s;flex-shrink:0;margin-right:2px}
+  .region-chevron.open{transform:rotate(90deg)}
+  .region-star-btn{background:none;border:none;font-size:16px;cursor:pointer;color:var(--star-off);transition:color .2s,transform .15s;flex-shrink:0;padding:4px}
+  .region-star-btn.starred{color:var(--star-on)}
+  .region-star-btn:active{transform:scale(1.3)}
+  .region-body{overflow:hidden;max-height:0;transition:max-height .35s ease}
+  .region-body.expanded{max-height:9999px}
+  .constituency-row{border-bottom:1px solid var(--border);padding:10px 16px;background:var(--bg);cursor:pointer}
+  .constituency-row:active{background:var(--bg3)}
+  .row-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .star-btn{background:none;border:none;font-size:16px;cursor:pointer;color:var(--star-off);transition:color .2s,transform .15s;flex-shrink:0;padding:2px}
+  .star-btn.starred{color:var(--star-on)}
+  .star-btn:active{transform:scale(1.3)}
+  .constituency-name{font-size:13px;font-weight:600;color:var(--white);flex:1}
+  .stations-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg3);padding:2px 6px;border-radius:4px;border:1px solid var(--border);transition:color .4s,border-color .4s}
+  .stations-badge.complete{color:var(--ndc-light);border-color:var(--ndc)}
+  .stations-badge.live{color:var(--gold);border-color:var(--gold-dim)}
+  .declared-badge{font-size:9px;font-weight:700;background:var(--gold);color:var(--bg);padding:1px 5px;border-radius:3px;letter-spacing:.5px}
+  .candidates{display:flex;flex-direction:column;gap:4px;padding-left:28px}
+  .candidate-row{display:flex;align-items:center;gap:8px}
+  .party-pill{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.5px;width:32px;text-align:center;flex-shrink:0}
+  .party-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .party-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .candidate-name{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .candidate-pct{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;min-width:52px;text-align:right;transition:color .5s}
+  .candidate-pct.ndc-lead{color:var(--ndc-light)}.candidate-pct.npp-lead{color:var(--npp-light)}.candidate-pct.neutral{color:var(--muted);font-size:13px}
+  .vote-bar{margin-top:5px;padding-left:28px;display:flex;height:3px;border-radius:2px;overflow:hidden;background:var(--bg4)}
+  .bar-ndc{background:var(--ndc-light);transition:width .8s ease}
+  .bar-gap{background:var(--bg4);width:1px;flex-shrink:0}
+  .bar-npp{background:var(--npp-light);transition:width .8s ease}
+  .no-results{padding-left:28px;font-size:11px;color:var(--muted);font-style:italic;margin-top:2px}
+  @keyframes numFlash{0%{opacity:1}30%{opacity:.4}100%{opacity:1}}
+  .updating{animation:numFlash .6s ease}
+
+  /* ── LIVE PANEL ── */
+  .live-status-bar{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:8px 16px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:var(--topbar-h,97px);z-index:50;
+  }
+  .streaming-row{display:flex;align-items:center;gap:6px}
+  .streaming-dot{width:7px;height:7px;background:#00E676;border-radius:50%;box-shadow:0 0 5px #00E676;animation:pulse 1.4s infinite}
+  .streaming-label{font-size:10px;font-weight:700;letter-spacing:1px;color:#00E676}
+  .live-feed-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+
+  /* Filter pills */
+  .feed-filters{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:8px 16px;display:flex;gap:6px;overflow-x:auto;
+    scrollbar-width:none;position:sticky;top:var(--topbar-h2,133px);z-index:49;
+  }
+  .feed-filters::-webkit-scrollbar{display:none}
+  .filter-pill{
+    flex-shrink:0;font-size:10px;font-weight:600;letter-spacing:.5px;
+    padding:4px 10px;border-radius:12px;cursor:pointer;
+    border:1px solid var(--border);color:var(--muted);background:var(--bg3);
+    text-transform:uppercase;transition:all .15s;
+  }
+  .filter-pill.active{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+  .filter-pill.f-ndc.active{background:var(--ndc-light);color:#fff;border-color:var(--ndc-light)}
+  .filter-pill.f-npp.active{background:var(--npp-light);color:#fff;border-color:var(--npp-light)}
+
+  /* Feed list — no overflow, just stacks */
+  .feed-list{padding:0 0 80px}
+
+  /* ── POLLING STATION CARD ── */
+  .ps-card{
+    border-bottom:1px solid var(--border);
+    padding:12px 16px;
+    background:var(--bg);
+    cursor:pointer;
+  }
+  .ps-card:active{background:var(--bg3)}
+
+  /* Card header row */
+  .ps-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .ps-station-name{font-size:13px;font-weight:700;color:var(--white);line-height:1.3;flex:1}
+  .ps-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0;padding-top:1px}
+
+  /* Sub-header: constituency · region */
+  .ps-location{font-size:11px;color:var(--muted);margin-bottom:8px}
+  .ps-location span{color:var(--gold)}
+
+  /* Vote rows */
+  .ps-votes{display:flex;flex-direction:column;gap:5px}
+  .ps-vote-row{display:flex;align-items:center;gap:8px}
+
+  /* Party pill — same as results */
+  .ps-pill{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.5px;width:32px;text-align:center;flex-shrink:0}
+  .ps-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .ps-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+
+  /* Candidate name */
+  .ps-cand-name{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Vote right side: checkmark + number aligned */
+  .ps-vote-right{display:flex;align-items:center;justify-content:flex-end;gap:4px;min-width:72px;flex-shrink:0}
+
+  /* Small pen-style checkmark — ivory, bold, no background */
+  .ps-check{font-size:12px;font-weight:900;color:var(--white);line-height:1;flex-shrink:0}
+
+  /* Raw vote count — the key figure */
+  .ps-vote-count{
+    font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;
+    text-align:right;
+  }
+  /* Both always in party colour — tick tells you who won */
+  .ps-vote-count.ndc-col{color:var(--ndc-light)}
+  .ps-vote-count.npp-col{color:var(--npp-light)}
+
+  /* Thin bar at bottom of card showing split */
+  .ps-split-bar{margin-top:8px;display:flex;height:2px;border-radius:1px;overflow:hidden;background:var(--bg4)}
+  .ps-bar-ndc{background:var(--ndc-light)}
+  .ps-bar-npp{background:var(--npp-light)}
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;width:100vw;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 12px;cursor:pointer;gap:4px}
+  .nav-icon{font-size:20px}
+  .nav-label{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+  .nav-item.active .nav-label{color:var(--gold)}
+  .nav-results-icon{width:22px;height:22px;border:2px solid var(--muted);border-radius:4px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:2px 3px;gap:2px}
+  .nav-item.active .nav-results-icon{border-color:var(--gold)}
+  .nav-bar{height:2px;border-radius:1px;background:var(--muted)}
+  .nav-item.active .nav-bar{background:var(--gold)}
+  .nav-bar:nth-child(1){width:100%}.nav-bar:nth-child(2){width:70%}.nav-bar:nth-child(3){width:85%}
+
+  /* ── FAVOURITES PANEL ── */
+  .fav-panel-header{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:var(--topbar-h,97px);z-index:50;
+  }
+  .fav-panel-title{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--gold)}
+  .fav-section-hdr{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 16px 8px;
+    background:var(--fav-region-bg);border-bottom:1px solid var(--border);
+  }
+  .fav-section-hdr-text{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2px;color:var(--gold)}
+  .fav-context-pill{
+    font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;
+    letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;
+  }
+  .fav-context-pill.pres{background:var(--fav-pres-pill-bg);color:var(--gold);border:1px solid var(--gold-dim)}
+  .fav-context-pill.parl{background:var(--fav-parl-pill-bg);color:#5BA4F5;border:1px solid #2255A0}
+  .fav-empty{padding:24px 16px;text-align:center;font-size:12px;color:var(--muted);font-style:italic}
+
+
+  /* Favourites sub-tabs */
+  .fav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:var(--topbar-h3,136px);z-index:48}
+  .fav-tab{flex:1;text-align:center;padding:8px 0;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+  .fav-tab.active.pres{color:var(--gold);border-bottom-color:var(--gold)}
+  .fav-tab.active.parl{color:#5BA4F5;border-bottom-color:#5BA4F5}
+
+
+  /* ── REGIONS PANEL ── */
+  .regions-status-bar{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:var(--topbar-h,97px);z-index:50;
+  }
+  .regions-title{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold)}
+  .regions-subtitle{font-size:10px;color:var(--muted)}
+  .regions-list{padding:8px 12px 80px;display:flex;flex-direction:column;gap:10px}
+
+  /* Region card */
+  .reg-card{
+    background:var(--bg2);border:1px solid var(--border);
+    border-radius:8px;overflow:hidden;
+  }
+
+  /* Card top — region name + progress */
+  .reg-card-top{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px 8px;
+    border-bottom:1px solid var(--border);
+  }
+  .reg-card-flag{width:24px;height:24px;border-radius:5px;overflow:hidden;flex-shrink:0}
+  .reg-card-name{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:1.5px;color:var(--gold);flex:1}
+  .reg-reporting-pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--white)}
+
+  /* Thin progress bar under header */
+  .reg-progress-bar{height:3px;background:var(--bg4)}
+  .reg-progress-fill{height:100%;background:var(--gold);transition:width .8s ease}
+  .reg-progress-fill.high{background:var(--ndc-light)}
+
+  /* Stats grid */
+  .reg-stats{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0}
+  .reg-stat{padding:9px 12px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .reg-stat:nth-child(even){border-right:none}
+  .reg-stat:nth-last-child(-n+2){border-bottom:none}
+  .reg-stat-label{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+  .reg-stat-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--white)}
+  .reg-stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+  /* Presidential mini bar inside card */
+  .reg-pres-row{padding:9px 12px;border-top:1px solid var(--border)}
+  .reg-pres-label{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+  .reg-pres-bars{display:flex;flex-direction:column;gap:4px}
+  .reg-pres-line{display:flex;align-items:center;gap:8px}
+  .reg-pres-pill{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;width:32px;text-align:center;flex-shrink:0}
+  .reg-pres-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .reg-pres-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .reg-pres-pct{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;min-width:48px;text-align:right}
+  .reg-pres-pct.ndc-col{color:var(--ndc-light)}
+  .reg-pres-pct.npp-col{color:var(--npp-light)}
+  .reg-pres-bar-wrap{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+  .reg-pres-bar-fill{height:100%;border-radius:2px}
+  .reg-pres-bar-fill.ndc{background:var(--ndc-light)}
+  .reg-pres-bar-fill.npp{background:var(--npp-light)}
+
+
+  .drilldown-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:210;background:var(--bg);overflow-y:auto;overflow-x:hidden;}
+  .drilldown-overlay.open{display:block}
+  .dd-topbar{position:sticky;top:0;z-index:10;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 4vw 0;width:100%;box-sizing:border-box;}
+  .dd-top-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .dd-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:0 8px 0 0;font-weight:700}
+  .dd-title{flex:1}
+  .dd-const-name{font-family:'Rajdhani',sans-serif;font-size:18px;letter-spacing:1.5px;color:var(--white);line-height:1.1}
+  .dd-region-name{font-size:11px;color:var(--gold);letter-spacing:.5px;margin-top:1px}
+  .dd-stations-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);color:var(--muted)}
+  .dd-stations-badge.live{color:var(--gold);border-color:var(--gold-dim)}
+  .dd-stations-badge.complete{color:var(--ndc-light);border-color:var(--ndc)}
+  .dd-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+  .dd-tabs::-webkit-scrollbar{display:none}
+  .dd-tab{flex-shrink:0;padding:8px 10px;font-size:10px;font-weight:600;letter-spacing:.5px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-transform:uppercase;}
+  .dd-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .dd-content{padding-bottom:40px}
+  .dd-panel{display:none}.dd-panel.active{display:block}
+  .dd-leader-banner{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+  .dd-leader-party{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:.5px}
+  .dd-leader-party.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .dd-leader-party.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .dd-leader-name{font-size:14px;font-weight:700;color:var(--white);flex:1}
+  .dd-leader-pct{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700}
+  .dd-leader-pct.ndc{color:var(--ndc-light)}.dd-leader-pct.npp{color:var(--npp-light)}
+  .dd-candidates{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .dd-cand-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  .dd-cand-row:last-child{margin-bottom:0}
+  .dd-cand-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+  .dd-cand-pill{font-size:9px;font-weight:700;padding:2px 4px;border-radius:3px;width:30px;text-align:center;flex-shrink:0}
+  .dd-cand-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .dd-cand-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .dd-cand-pill.oth{background:var(--oth-pill-bg);color:var(--oth-pill-color);border:1px solid var(--oth-pill-border)}
+  .dd-cand-name{font-size:12px;color:var(--white);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dd-cand-bar-wrap{width:60px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;flex-shrink:0}
+  .dd-cand-bar{height:100%;border-radius:2px}.dd-cand-bar.ndc{background:var(--ndc-light)}.dd-cand-bar.npp{background:var(--npp-light)}.dd-cand-bar.oth{background:var(--oth-bar)}
+  .dd-cand-votes{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:48px;text-align:right}
+  .dd-cand-pct{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;min-width:44px;text-align:right}
+  .dd-cand-pct.ndc{color:var(--ndc-light)}.dd-cand-pct.npp{color:var(--npp-light)}.dd-cand-pct.oth{color:var(--oth-pill-color)}
+  .dd-vote-accounting{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .dd-vote-accounting-hdr{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+  .dd-va-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+  .dd-va-label{font-size:12px;color:var(--muted)}
+  .dd-va-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--white)}
+  .dd-va-value.highlight{color:var(--gold)}.dd-va-value.warn{color:#FF9500}
+  .dd-stats-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+  .dd-stat{padding:10px 16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .dd-stat:nth-child(even){border-right:none}.dd-stat:nth-last-child(-n+2){border-bottom:none}
+  .dd-stat-label{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+  .dd-stat-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--white)}
+  .dd-stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .dd-profile-section{border-top:2px solid var(--border)}
+  .dd-profile-hdr{padding:8px 16px;background:var(--bg3);font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--gold)}
+  .dd-profile-grid{display:grid;grid-template-columns:1fr 1fr}
+  .dd-profile-item{padding:9px 16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .dd-profile-item:nth-child(even){border-right:none}.dd-profile-item:nth-last-child(-n+2){border-bottom:none}
+  .dd-profile-item-label{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+  .dd-profile-item-value{font-size:13px;font-weight:600;color:var(--white)}
+  .dd-stronghold-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+  .dd-stronghold-badge.ndc-strong{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .dd-stronghold-badge.npp-strong{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .dd-stronghold-badge.swing{background:var(--swing-bg);color:var(--gold);border:1px solid var(--gold-dim)}
+  .dd-stronghold-badge.bellwether{background:var(--bell-bg);color:var(--bell-color);border:1px solid var(--bell-border)}
+  .dd-news-item{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .dd-news-headline{font-size:13px;font-weight:600;color:var(--white);line-height:1.3;margin-bottom:4px}
+  .dd-news-meta{font-size:10px;color:var(--muted)}
+  .dd-news-source{color:var(--gold)}
+  .dd-hist-tabs{display:flex;background:var(--bg3);border-bottom:1px solid var(--border)}
+  .dd-hist-tab{flex:1;text-align:center;padding:7px 0;font-size:10px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-transform:uppercase;}
+  .dd-hist-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .dd-h2h-year{border-bottom:1px solid var(--border)}
+  .dd-h2h-year-hdr{padding:8px 16px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
+  .dd-h2h-year-label{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:1.5px;color:var(--gold)}
+  .dd-h2h-winner-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px}
+  .dd-h2h-winner-badge.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .dd-h2h-winner-badge.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .dd-h2h-row{display:flex;align-items:center;gap:8px;padding:7px 16px}
+  .dd-h2h-pill{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;width:32px;text-align:center;flex-shrink:0}
+  .dd-h2h-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .dd-h2h-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .dd-h2h-pill.oth{background:var(--oth-pill-bg);color:var(--oth-pill-color);border:1px solid var(--oth-pill-border)}
+  .dd-h2h-name{font-size:12px;color:var(--muted);flex:1}
+  .dd-h2h-pct{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;min-width:48px;text-align:right}
+  .dd-h2h-pct.ndc{color:var(--ndc-light)}.dd-h2h-pct.npp{color:var(--npp-light)}.dd-h2h-pct.oth{color:var(--oth-pill-color)}
+  .dd-h2h-bar-wrap{width:70px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+  .dd-h2h-bar{height:100%;border-radius:2px}.dd-h2h-bar.ndc{background:var(--ndc-light)}.dd-h2h-bar.npp{background:var(--npp-light)}.dd-h2h-bar.oth{background:var(--oth-bar)}
+  .dd-h2h-turnout{padding:4px 16px 8px;font-size:10px;color:var(--muted)}
+  .dd-seat-counter{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;}
+  .dd-seat-block{flex:1;text-align:center;border-right:1px solid var(--border)}
+  .dd-seat-block:last-child{border-right:none}
+  .dd-seat-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700}
+  .dd-seat-num.ndc{color:var(--ndc-light)}.dd-seat-num.npp{color:var(--npp-light)}.dd-seat-num.oth{color:var(--oth-pill-color)}
+  .dd-seat-label{font-size:9px;font-weight:600;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-top:2px}
+  .reg-drilldown-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:201;background:var(--bg);overflow-y:auto;overflow-x:hidden;}
+  .reg-drilldown-overlay.open{display:block}
+  .rdd-topbar{position:sticky;top:0;z-index:10;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 4vw 0;width:100%;box-sizing:border-box;}
+  .rdd-top-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .rdd-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:0 8px 0 0;font-weight:700}
+  .rdd-title{flex:1}
+  .rdd-region-name{font-family:'Rajdhani',sans-serif;font-size:18px;letter-spacing:1.5px;color:var(--white)}
+  .rdd-region-sub{font-size:11px;color:var(--gold);margin-top:1px}
+  .rdd-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+  .rdd-tabs::-webkit-scrollbar{display:none}
+  .rdd-tab{flex-shrink:0;padding:8px 10px;font-size:10px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-transform:uppercase;}
+  .rdd-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .rdd-content{padding-bottom:40px}
+  .rdd-panel{display:none}.rdd-panel.active{display:block}
+  .rdd-el-tabs{display:flex;background:var(--bg3);border-bottom:1px solid var(--border)}
+  .rdd-el-tab{flex:1;text-align:center;padding:7px 0;font-size:10px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-transform:uppercase;}
+  .rdd-el-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+
+
+  /* ── GHANA NATIONAL PANEL ── */
+  .ghana-status-bar{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:var(--dd-topbar-h,57px);z-index:50;
+  }
+  .ghana-panel-title{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold)}
+  .ghana-panel-sub{font-size:10px;color:var(--muted)}
+
+  /* Hero winner banner */
+  .gh-hero{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  .gh-hero-label{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .gh-hero-row{display:flex;align-items:center;gap:10px}
+  .gh-hero-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:.5px;flex-shrink:0}
+  .gh-hero-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .gh-hero-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .gh-hero-name{font-size:16px;font-weight:700;color:var(--white);flex:1}
+  .gh-hero-pct{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;line-height:1}
+  .gh-hero-pct.ndc{color:var(--ndc-light)}.gh-hero-pct.npp{color:var(--npp-light)}
+  .gh-hero-margin{font-size:11px;color:var(--muted);margin-top:4px}
+  .gh-hero-margin span{color:var(--gold);font-weight:600}
+
+  /* National vote bars */
+  .gh-bars{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .gh-bar-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .gh-bar-line{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .gh-bar-pill{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;width:32px;text-align:center;flex-shrink:0}
+  .gh-bar-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .gh-bar-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .gh-bar-wrap{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+  .gh-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+  .gh-bar-fill.ndc{background:var(--ndc-light)}.gh-bar-fill.npp{background:var(--npp-light)}.gh-bar-fill.oth{background:var(--oth-bar)}
+  .gh-bar-pct{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;min-width:50px;text-align:right}
+  .gh-bar-pct.ndc{color:var(--ndc-light)}.gh-bar-pct.npp{color:var(--npp-light)}.gh-bar-pct.oth{color:var(--oth-pill-color)}
+
+  /* Key national stats grid */
+  .gh-stats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border)}
+  .gh-stat{padding:10px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .gh-stat:nth-child(even){border-right:none}
+  .gh-stat:nth-last-child(-n+2){border-bottom:none}
+  .gh-stat-label{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+  .gh-stat-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--white)}
+  .gh-stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+  /* Seats scoreboard */
+  .gh-seats{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  .gh-seats-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+  .gh-seats-row{display:flex;align-items:flex-end;gap:0}
+  .gh-seat-block{flex:1;text-align:center}
+  .gh-seat-block:not(:last-child){border-right:1px solid var(--border)}
+  .gh-seat-num{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;line-height:1}
+  .gh-seat-num.ndc{color:var(--ndc-light)}.gh-seat-num.npp{color:var(--npp-light)}.gh-seat-num.oth{color:var(--oth-pill-color)}
+  .gh-seat-sub{font-size:9px;font-weight:600;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .gh-seats-majority{text-align:center;font-size:10px;color:var(--muted);margin-top:6px}
+  .gh-seats-majority span{color:var(--gold);font-weight:600}
+
+  /* Majority-needed bar */
+  .gh-majority-bar-wrap{margin:6px 0 0;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;display:flex}
+  .gh-majority-seg-ndc{background:var(--ndc-light);height:100%;transition:width .8s ease}
+  .gh-majority-seg-npp{background:var(--npp-light);height:100%;transition:width .8s ease}
+  .gh-majority-marker{width:2px;background:var(--gold);flex-shrink:0}
+
+  /* Reporting progress */
+  .gh-progress{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .gh-progress-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+  .gh-progress-label span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--white);font-weight:700;letter-spacing:0}
+  .gh-progress-bar-wrap{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+  .gh-progress-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+
+  /* Regional breakdown table */
+  .gh-region-table{border-top:1px solid var(--border)}
+  .gh-region-table-hdr{padding:8px 16px;background:var(--bg3);display:flex;align-items:center;gap:6px}
+  .gh-region-table-hdr-text{font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--gold);flex:1}
+  .gh-region-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+  .gh-region-row:active{background:var(--bg3)}
+  .gh-region-row-name{font-size:12px;font-weight:600;color:var(--white);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gh-region-leader-pill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0;letter-spacing:.5px}
+  .gh-region-leader-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
+  .gh-region-leader-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
+  .gh-region-pct{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;min-width:44px;text-align:right;flex-shrink:0}
+  .gh-region-pct.ndc{color:var(--ndc-light)}.gh-region-pct.npp{color:var(--npp-light)}
+  .gh-region-mini-bar{width:60px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;flex-shrink:0}
+  .gh-region-mini-fill{height:100%;border-radius:2px;transition:width .5s ease}
+  .gh-region-mini-fill.ndc{background:var(--ndc-light)}.gh-region-mini-fill.npp{background:var(--npp-light)}
+  .gh-region-ps-badge{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0}
+
+  /* Voter accounting section */
+  .gh-accounting{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .gh-accounting-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .gh-acc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+  .gh-acc-key{font-size:12px;color:var(--muted)}
+  .gh-acc-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--white)}
+  .gh-acc-val.gold{color:var(--gold)}.gh-acc-val.green{color:var(--ndc-light)}
+
+
+  .election-tab.news-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  #newsInlinePanel{display:none;padding:0;background:var(--bg)}
+  #newsInlinePanel.visible{display:block}
+  .election-tabs.hidden{display:none}
+  .topbar.tabs-hidden .election-tabs{display:none}
+

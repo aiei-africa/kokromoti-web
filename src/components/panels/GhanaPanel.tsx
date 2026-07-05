@@ -1,0 +1,72 @@
+"use client";
+import { useEffect, useState } from "react";
+import { api, type PresidentialNational, type ParliamentarySummary } from "@/lib/api";
+import CandidateResultRow from "../CandidateResultRow";
+
+export default function GhanaPanel({ electionCode }: { electionCode: string }) {
+  const [national, setNational] = useState<PresidentialNational | null>(null);
+  const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.presidentialNational(electionCode).catch(() => null),
+      api.parliamentarySummary(electionCode).catch(() => null),
+    ]).then(([n, s]) => {
+      setNational(n);
+      setSeatSummary(s);
+      setLoading(false);
+    });
+  }, [electionCode]);
+
+  return (
+    <div id="panel-ghana">
+      <div className="ghana-status-bar">
+        <span className="ghana-panel-title">🇬🇭 NATIONAL SUMMARY</span>
+        <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : electionCode}</span>
+      </div>
+      <div style={{ padding: "0 0 80px" }}>
+        {national && (
+          <div className="constituency-row">
+            <div className="row-top">
+              <div className="constituency-name">Presidential — {national.election}</div>
+            </div>
+            <CandidateResultRow results={national.results} />
+          </div>
+        )}
+
+        {seatSummary && (
+          <div className="constituency-row">
+            <div className="row-top">
+              <div className="constituency-name">
+                Parliamentary — {seatSummary.declaredSeats}/{seatSummary.totalSeats} seats declared
+              </div>
+              {seatSummary.hasMajority && <span className="declared-badge">MAJORITY</span>}
+            </div>
+            <div className="candidates">
+              {seatSummary.parties.map((p) => (
+                <div className="candidate-row" key={p.abbreviation}>
+                  <div
+                    className="party-pill"
+                    style={{ background: `${p.colourHex || "#5C6E8A"}22`, color: p.colourHex || "#5C6E8A", border: `1px solid ${p.colourHex || "#5C6E8A"}55` }}
+                  >
+                    {p.abbreviation}
+                  </div>
+                  <div className="candidate-name">{p.seats} seats</div>
+                  <div className="candidate-pct" style={{ color: "var(--muted)" }}>
+                    {((p.seats / seatSummary.totalSeats) * 100).toFixed(1)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!national && !seatSummary && !loading && (
+          <div className="no-results">No national data available for {electionCode} yet.</div>
+        )}
+      </div>
+    </div>
+  );
+}
