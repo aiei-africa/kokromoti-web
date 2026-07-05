@@ -741,6 +741,59 @@
 
   /* Splash screen */
   .splash-icon { width: 220px !important; height: 220px !important; }
+
+  /* ── Constituency drilldown (dd-*) — built after these tiers already
+     existed, so it never inherited the same scale-up. Same proportional
+     jumps as the main app's classes: percentages/vote-counts get the
+     biggest increase, labels/badges smaller. ── */
+  .dd-shell { max-width: 960px; margin: 0 auto; }
+  .dd-const-name { font-size: 24px; }
+  .dd-region-name { font-size: 14px; }
+  .dd-tab { font-size: 13px; padding: 11px 14px; }
+  .dd-back { font-size: 28px; }
+  .dd-stations-badge { font-size: 12px; padding: 3px 9px; }
+  .dd-leader-banner { padding: 18px 22px; }
+  .dd-leader-party { font-size: 14px; padding: 4px 12px; }
+  .dd-leader-name { font-size: 19px; }
+  .dd-leader-pct { font-size: 32px; }
+  .dd-candidates { padding: 16px 22px; }
+  .dd-cand-row { gap: 12px; margin-bottom: 12px; }
+  .dd-cand-avatar { width: 40px; height: 40px; font-size: 13px; }
+  .dd-cand-pill { font-size: 12px; padding: 3px 6px; width: 42px; }
+  .dd-cand-name { font-size: 16px; }
+  .dd-cand-bar-wrap { width: 100px; height: 6px; }
+  .dd-cand-votes { font-size: 15px; min-width: 70px; }
+  .dd-cand-pct { font-size: 19px; min-width: 60px; }
+  .dd-vote-accounting { padding: 16px 22px; }
+  .dd-vote-accounting-hdr { font-size: 12px; margin-bottom: 10px; }
+  .dd-va-row { margin-bottom: 9px; }
+  .dd-va-label { font-size: 16px; }
+  .dd-va-value { font-size: 18px; }
+  .dd-stat { padding: 16px 22px; }
+  .dd-stat-label { font-size: 12px; }
+  .dd-stat-value { font-size: 19px; }
+  .dd-stat-sub { font-size: 13px; }
+  .dd-profile-hdr { padding: 12px 22px; font-size: 17px; }
+  .dd-profile-item { padding: 14px 22px; }
+  .dd-profile-item-label { font-size: 12px; }
+  .dd-profile-item-value { font-size: 17px; }
+  .dd-stronghold-badge { font-size: 13px; padding: 6px 14px; }
+  .dd-news-item { padding: 16px 22px; }
+  .dd-news-headline { font-size: 17px; }
+  .dd-news-meta { font-size: 13px; }
+  .dd-hist-tab { font-size: 13px; padding: 10px 0; }
+  .dd-h2h-year-hdr { padding: 12px 22px; }
+  .dd-h2h-year-label { font-size: 18px; }
+  .dd-h2h-winner-badge { font-size: 13px; padding: 3px 10px; }
+  .dd-h2h-row { gap: 12px; padding: 10px 22px; }
+  .dd-h2h-pill { font-size: 12px; width: 42px; }
+  .dd-h2h-name { font-size: 15px; }
+  .dd-h2h-pct { font-size: 18px; min-width: 60px; }
+  .dd-h2h-bar-wrap { width: 100px; height: 5px; }
+  .dd-h2h-turnout { padding: 6px 22px 10px; font-size: 13px; }
+  .dd-seat-counter { padding: 18px 22px; }
+  .dd-seat-num { font-size: 30px; }
+  .dd-seat-label { font-size: 12px; }
 }
 
 @media (min-width: 1440px) {
@@ -792,4 +845,55 @@
   .nav-results-icon { width: 38px; }
 
   .splash-icon { width: 300px !important; height: 300px !important; }
+
+  /* ── Constituency drilldown (dd-*) — genuine 10-foot-UI scale, matching
+     the same treatment given to the main app's classes at this tier. ── */
+  .dd-shell { max-width: 1300px; }
+  .dd-const-name { font-size: 36px; }
+  .dd-region-name { font-size: 19px; }
+  .dd-tab { font-size: 17px; padding: 16px 20px; }
+  .dd-back { font-size: 38px; }
+  .dd-stations-badge { font-size: 16px; padding: 5px 12px; }
+  .dd-leader-banner { padding: 26px 32px; }
+  .dd-leader-party { font-size: 19px; padding: 6px 16px; }
+  .dd-leader-name { font-size: 26px; }
+  .dd-leader-pct { font-size: 48px; }
+  .dd-candidates { padding: 24px 32px; }
+  .dd-cand-row { gap: 18px; margin-bottom: 18px; }
+  .dd-cand-avatar { width: 56px; height: 56px; font-size: 18px; }
+  .dd-cand-pill { font-size: 17px; padding: 5px 10px; width: 60px; }
+  .dd-cand-name { font-size: 23px; }
+  .dd-cand-bar-wrap { width: 160px; height: 9px; }
+  .dd-cand-votes { font-size: 21px; min-width: 100px; }
+  .dd-cand-pct { font-size: 28px; min-width: 86px; }
+  .dd-vote-accounting { padding: 24px 32px; }
+  .dd-vote-accounting-hdr { font-size: 16px; margin-bottom: 14px; }
+  .dd-va-row { margin-bottom: 13px; }
+  .dd-va-label { font-size: 22px; }
+  .dd-va-value { font-size: 25px; }
+  .dd-stat { padding: 24px 32px; }
+  .dd-stat-label { font-size: 16px; }
+  .dd-stat-value { font-size: 27px; }
+  .dd-stat-sub { font-size: 17px; }
+  .dd-profile-hdr { padding: 16px 32px; font-size: 23px; }
+  .dd-profile-item { padding: 20px 32px; }
+  .dd-profile-item-label { font-size: 16px; }
+  .dd-profile-item-value { font-size: 23px; }
+  .dd-stronghold-badge { font-size: 17px; padding: 8px 18px; }
+  .dd-news-item { padding: 22px 32px; }
+  .dd-news-headline { font-size: 23px; }
+  .dd-news-meta { font-size: 17px; }
+  .dd-hist-tab { font-size: 17px; padding: 14px 0; }
+  .dd-h2h-year-hdr { padding: 16px 32px; }
+  .dd-h2h-year-label { font-size: 24px; }
+  .dd-h2h-winner-badge { font-size: 17px; padding: 5px 14px; }
+  .dd-h2h-row { gap: 18px; padding: 14px 32px; }
+  .dd-h2h-pill { font-size: 16px; width: 58px; }
+  .dd-h2h-name { font-size: 20px; }
+  .dd-h2h-pct { font-size: 24px; min-width: 80px; }
+  .dd-h2h-bar-wrap { width: 150px; height: 8px; }
+  .dd-h2h-turnout { padding: 8px 32px 14px; font-size: 17px; }
+  .dd-seat-counter { padding: 26px 32px; }
+  .dd-seat-num { font-size: 42px; }
+  .dd-seat-label { font-size: 16px; }
 }

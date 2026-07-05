@@ -62,6 +62,7 @@ export default function ConstituencyDrilldown({
 
   return (
     <div className="drilldown-overlay open">
+      <div className="dd-shell">
       <div className="dd-topbar">
         <div className="dd-top-row">
           <button className="dd-back" onClick={onClose}>←</button>
@@ -269,6 +270,7 @@ export default function ConstituencyDrilldown({
             No news content available yet — this tab activates once a real news feed is wired in.
           </div>
         )}
+      </div>
       </div>
     </div>
   );
