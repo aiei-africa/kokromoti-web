@@ -256,7 +256,7 @@
   .declared-badge{font-size:9px;font-weight:700;background:var(--gold);color:var(--bg);padding:1px 5px;border-radius:3px;letter-spacing:.5px}
   .candidates{display:flex;flex-direction:column;gap:4px;padding-left:28px}
   .candidate-row{display:flex;align-items:center;gap:8px}
-  .party-pill{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.5px;width:32px;text-align:center;flex-shrink:0}
+  .party-pill{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.5px;min-width:32px;width:auto;text-align:center;flex-shrink:0}
   .party-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
   .party-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
   .candidate-name{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -725,7 +725,9 @@
   .constituency-name { font-size: 19px; font-weight: 600; }
   .declared-badge { font-size: 12px; padding: 4px 10px; }
   .candidate-row { padding: 6px 0; }
-  .party-pill { font-size: 13px; padding: 4px 10px; }
+  .party-pill { font-size: 13px; padding: 4px 10px; min-width: 48px; width: auto; }
+  .candidates { gap: 8px; }
+  .candidate-row { gap: 14px; }
   .candidate-name { font-size: 17px; }
   .vote-count { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--muted); margin-right: 10px; }
   .candidate-pct { font-size: 25px; font-weight: 700; }
@@ -776,7 +778,9 @@
   .constituency-name { font-size: 30px; font-weight: 600; }
   .declared-badge { font-size: 16px; padding: 6px 14px; }
   .candidate-row { padding: 10px 0; }
-  .party-pill { font-size: 19px; padding: 6px 14px; }
+  .party-pill { font-size: 19px; padding: 6px 14px; min-width: 66px; width: auto; }
+  .candidates { gap: 12px; }
+  .candidate-row { gap: 20px; }
   .candidate-name { font-size: 26px; }
   .vote-count { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--muted); margin-right: 16px; }
   .candidate-pct { font-size: 42px; font-weight: 700; }
