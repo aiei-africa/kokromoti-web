@@ -39,6 +39,11 @@ export default function CandidateResultRow({ results }: { results: CandidateResu
                 {party?.abbreviation ?? "IND"}
               </div>
               <div className="candidate-name">{nameOf(c)}</div>
+              {/* Hidden on phone (space-constrained), shown from the laptop
+                  tier upward via CSS — see .vote-count in globals.css. Real
+                  vote count, not just the share, matching the drilldown
+                  detail screen's own "14,949  30.7%" pattern. */}
+              <span className="vote-count">({c.votes.toLocaleString()})</span>
               <div
                 className="candidate-pct"
                 style={{ color: isLeader ? leaderColour : "var(--muted)" }}

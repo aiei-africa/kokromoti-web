@@ -260,7 +260,7 @@
   .party-pill.ndc{background:var(--ndc-bg);color:var(--ndc-light);border:1px solid var(--ndc)}
   .party-pill.npp{background:var(--npp-bg);color:var(--npp-light);border:1px solid var(--npp)}
   .candidate-name{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .candidate-pct{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;min-width:60px;text-align:right;transition:color .5s}
+  .candidate-pct{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;min-width:52px;text-align:right;transition:color .5s}
   .vote-count{display:none}
   .candidate-pct.ndc-lead{color:var(--ndc-light)}.candidate-pct.npp-lead{color:var(--npp-light)}.candidate-pct.neutral{color:var(--muted);font-size:13px}
   .vote-bar{margin-top:5px;padding-left:28px;display:flex;height:3px;border-radius:2px;overflow:hidden;background:var(--bg4)}
@@ -728,7 +728,7 @@
   .party-pill { font-size: 13px; padding: 4px 10px; }
   .candidate-name { font-size: 17px; }
   .vote-count { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--muted); margin-right: 10px; }
-  .candidate-pct { font-size: 25px; font-weight: 700; }
+  .candidate-pct { font-size: 19px; font-weight: 700; }
   .vote-bar { height: 6px; margin-top: 10px; }
 
   /* Bottom nav */
@@ -779,7 +779,7 @@
   .party-pill { font-size: 19px; padding: 6px 14px; }
   .candidate-name { font-size: 26px; }
   .vote-count { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--muted); margin-right: 16px; }
-  .candidate-pct { font-size: 42px; font-weight: 700; }
+  .candidate-pct { font-size: 32px; font-weight: 700; }
   .vote-bar { height: 11px; margin-top: 16px; }
 
   .bottom-nav { padding: 20px 0 24px; }
