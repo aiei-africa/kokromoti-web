@@ -19,7 +19,13 @@ export default function HeaderStack({ children }: { children: React.ReactNode })
     if (!el) return;
 
     const setHeight = () => {
-      document.documentElement.style.setProperty("--topbar-h", `${el.offsetHeight}px`);
+      const height = `${el.offsetHeight}px`;
+      // Different v10 panels reference different variable names for the same
+      // measurement (--topbar-h on Regions, --dd-topbar-h on Ghana) — setting
+      // both to the same real value rather than guessing which one each
+      // component actually needs.
+      document.documentElement.style.setProperty("--topbar-h", height);
+      document.documentElement.style.setProperty("--dd-topbar-h", height);
     };
     setHeight();
 

@@ -44,22 +44,28 @@ export default function RegionsPanel({
             <div className="region-name">{region.name}</div>
             <div className="region-count">{region._count.constituencies} constituencies</div>
           </div>
-          {expandedId === region.id && (
+          {/* Always rendered (not conditionally mounted) — the CSS transition on
+              max-height only animates when this element persists across the
+              state change; toggling a class on it triggers the slide, whereas
+              mounting/unmounting it skips the animation entirely and just snaps. */}
+          <div className={`region-body ${expandedId === region.id ? "expanded" : ""}`}>
             <div className="constituency-row">
-              {regionData ? (
-                <>
-                  <div className="row-top">
-                    <div className="constituency-name">
-                      Turnout: {regionData.turnoutPct?.toFixed(1) ?? "—"}%
+              {expandedId === region.id ? (
+                regionData ? (
+                  <>
+                    <div className="row-top">
+                      <div className="constituency-name">
+                        Turnout: {regionData.turnoutPct?.toFixed(1) ?? "—"}%
+                      </div>
                     </div>
-                  </div>
-                  <CandidateResultRow results={regionData.results} />
-                </>
-              ) : (
-                <div className="no-results">Loading {region.name}...</div>
-              )}
+                    <CandidateResultRow results={regionData.results} />
+                  </>
+                ) : (
+                  <div className="no-results">Loading {region.name}...</div>
+                )
+              ) : null}
             </div>
-          )}
+          </div>
         </div>
       ))}
     </div>
