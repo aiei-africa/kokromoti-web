@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { api, type Election } from "@/lib/api";
 import TopBar from "@/components/TopBar";
+import HeaderStack from "@/components/HeaderStack";
 import BottomNav, { type NavPanel } from "@/components/BottomNav";
 import ResultsPanel from "@/components/panels/ResultsPanel";
 import GhanaPanel from "@/components/panels/GhanaPanel";
@@ -27,35 +28,37 @@ export default function HomePage() {
 
   return (
     <>
-      <TopBar
-        electionType={electionType}
-        onElectionTypeChange={setElectionType}
-        onSearchToggle={() => setSearchOpen((s) => !s)}
-      />
+      <HeaderStack>
+        <TopBar
+          electionType={electionType}
+          onElectionTypeChange={setElectionType}
+          onSearchToggle={() => setSearchOpen((s) => !s)}
+        />
 
-      {searchOpen && (
-        <div className="search-bar">
-          <input className="search-input" type="text" placeholder="Search constituency..." />
-        </div>
-      )}
+        {searchOpen && (
+          <div className="search-bar">
+            <input className="search-input" type="text" placeholder="Search constituency..." />
+          </div>
+        )}
 
-      <div className="date-bar">
-        <div className="election-badge historical">
-          <div className="live-dot" />
-          HISTORICAL RECORD
+        <div className="date-bar">
+          <div className="election-badge historical">
+            <div className="live-dot" />
+            HISTORICAL RECORD
+          </div>
+          <select
+            value={electionCode}
+            onChange={(e) => setElectionCode(e.target.value)}
+            style={{ background: "transparent", border: "none", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
+          >
+            {AVAILABLE_ELECTIONS.map((code) => (
+              <option key={code} value={code} style={{ color: "#000" }}>
+                {code} General Election
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          value={electionCode}
-          onChange={(e) => setElectionCode(e.target.value)}
-          style={{ background: "transparent", border: "none", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
-        >
-          {AVAILABLE_ELECTIONS.map((code) => (
-            <option key={code} value={code} style={{ color: "#000" }}>
-              {code} General Election
-            </option>
-          ))}
-        </select>
-      </div>
+      </HeaderStack>
 
       <div className="content">
         <div className={`panel ${navPanel === "results" ? "active" : ""}`}>
