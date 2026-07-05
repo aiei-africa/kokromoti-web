@@ -794,6 +794,19 @@
   .dd-seat-counter { padding: 18px 22px; }
   .dd-seat-num { font-size: 30px; }
   .dd-seat-label { font-size: 12px; }
+
+  /* ── Region cards (reg-*) — same lesson as the drilldown: built after
+     these tiers existed, needs the same treatment applied proactively
+     this time rather than waiting to be caught again. ── */
+  .reg-card { max-width: 700px; margin: 0 auto 4px; }
+  .reg-card-name { font-size: 18px; }
+  .reg-card-flag { width: 30px; height: 30px; }
+  .reg-stat { padding: 12px 16px; }
+  .reg-stat-label { font-size: 11px; }
+  .reg-stat-value { font-size: 17px; }
+  .reg-stat-sub { font-size: 12px; }
+  .reg-pres-row { padding: 12px 16px; }
+  .reg-pres-label { font-size: 11px; }
 }
 
 @media (min-width: 1440px) {
@@ -896,4 +909,15 @@
   .dd-seat-counter { padding: 26px 32px; }
   .dd-seat-num { font-size: 42px; }
   .dd-seat-label { font-size: 16px; }
+
+  /* ── Region cards (reg-*) — TV tier ── */
+  .reg-card { max-width: 900px; margin: 0 auto 8px; }
+  .reg-card-name { font-size: 26px; }
+  .reg-card-flag { width: 40px; height: 40px; }
+  .reg-stat { padding: 18px 24px; }
+  .reg-stat-label { font-size: 15px; }
+  .reg-stat-value { font-size: 24px; }
+  .reg-stat-sub { font-size: 16px; }
+  .reg-pres-row { padding: 18px 24px; }
+  .reg-pres-label { font-size: 15px; }
 }
