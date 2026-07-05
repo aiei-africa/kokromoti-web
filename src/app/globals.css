@@ -692,46 +692,48 @@
 @media (min-width: 768px) {
   /* Shell: cap width and center, rather than raw edge-to-edge stretch */
   .app-shell {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     box-shadow: 0 0 40px rgba(0,0,0,0.3);
   }
 
   /* Top bar / branding */
-  .logo-text { font-size: 26px; }
-  .logo-thumb, .logo-area img { width: 40px !important; height: 40px !important; }
-  .election-tab { font-size: 13px; padding: 10px 0; }
-  .icon-btn { font-size: 22px; }
+  .logo-text { font-size: 28px; }
+  .logo-thumb, .logo-area img { width: 44px !important; height: 44px !important; }
+  .election-tab { font-size: 14px; padding: 12px 0; }
+  .icon-btn { font-size: 24px; }
 
   /* Date bar / election badge */
-  .election-badge { font-size: 11px; padding: 4px 10px; }
-  .date-bar { font-size: 13px; padding: 12px 20px; }
+  .election-badge { font-size: 12px; padding: 5px 12px; }
+  .date-bar { font-size: 15px; padding: 14px 22px; }
 
   /* Region / Ghana status bars */
-  .regions-title, .ghana-panel-title { font-size: 16px; }
-  .regions-subtitle, .ghana-panel-sub { font-size: 12px; }
-  .regions-status-bar, .ghana-status-bar { padding: 14px 20px; }
+  .regions-title, .ghana-panel-title { font-size: 18px; }
+  .regions-subtitle, .ghana-panel-sub { font-size: 13px; }
+  .regions-status-bar, .ghana-status-bar { padding: 16px 22px; }
 
   /* Region headers */
-  .region-header { padding: 14px 20px; }
-  .region-name { font-size: 16px; }
-  .region-count { font-size: 13px; }
+  .region-header { padding: 16px 22px; }
+  .region-name { font-size: 20px; }
+  .region-count { font-size: 14px; }
 
-  /* Constituency rows — the core repeated unit */
-  .constituency-row { padding: 16px 20px; }
-  .constituency-name { font-size: 16px; }
-  .declared-badge { font-size: 10px; padding: 3px 8px; }
-  .candidate-row { padding: 4px 0; }
-  .party-pill { font-size: 11px; padding: 3px 8px; }
-  .candidate-name { font-size: 14px; }
-  .candidate-pct { font-size: 15px; }
-  .vote-bar { height: 5px; margin-top: 8px; }
+  /* Constituency rows — the core repeated unit, and the actual gap flagged:
+     these are the numbers people are actually reading, so they get the
+     biggest jump, not a token bump. */
+  .constituency-row { padding: 18px 22px; }
+  .constituency-name { font-size: 19px; font-weight: 600; }
+  .declared-badge { font-size: 12px; padding: 4px 10px; }
+  .candidate-row { padding: 6px 0; }
+  .party-pill { font-size: 13px; padding: 4px 10px; }
+  .candidate-name { font-size: 17px; }
+  .candidate-pct { font-size: 19px; font-weight: 700; }
+  .vote-bar { height: 6px; margin-top: 10px; }
 
   /* Bottom nav */
-  .bottom-nav { padding: 10px 0 14px; }
-  .nav-icon { font-size: 24px; }
-  .nav-label { font-size: 11px; }
-  .nav-results-icon { width: 24px; }
+  .bottom-nav { padding: 12px 0 16px; }
+  .nav-icon { font-size: 26px; }
+  .nav-label { font-size: 12px; }
+  .nav-results-icon { width: 26px; }
 
   /* Splash screen */
   .splash-icon { width: 220px !important; height: 220px !important; }
@@ -742,40 +744,45 @@
      full edge-to-edge, since very long line-lengths hurt readability
      regardless of text size */
   .app-shell {
-    max-width: 1200px;
+    max-width: 1300px;
     box-shadow: 0 0 80px rgba(0,0,0,0.4);
   }
 
-  /* Top bar / branding — significantly larger, 10-foot-UI scale */
-  .logo-text { font-size: 36px; letter-spacing: 4px; }
-  .logo-thumb, .logo-area img { width: 56px !important; height: 56px !important; }
-  .election-tab { font-size: 17px; padding: 14px 0; }
-  .icon-btn { font-size: 30px; }
+  /* Top bar / branding — genuine 10-foot-UI scale, matching how TV apps
+     (Netflix, YouTube TV) actually size body text: 24-32px minimum, not
+     the 19-22px this tier had before, which was barely bigger than phone. */
+  .logo-text { font-size: 42px; letter-spacing: 4px; }
+  .logo-thumb, .logo-area img { width: 64px !important; height: 64px !important; }
+  .election-tab { font-size: 19px; padding: 16px 0; }
+  .icon-btn { font-size: 34px; }
 
-  .election-badge { font-size: 14px; padding: 6px 14px; }
-  .date-bar { font-size: 17px; padding: 18px 28px; }
+  .election-badge { font-size: 16px; padding: 7px 16px; }
+  .date-bar { font-size: 20px; padding: 22px 32px; }
 
-  .regions-title, .ghana-panel-title { font-size: 22px; }
-  .regions-subtitle, .ghana-panel-sub { font-size: 16px; }
-  .regions-status-bar, .ghana-status-bar { padding: 20px 28px; }
+  .regions-title, .ghana-panel-title { font-size: 26px; }
+  .regions-subtitle, .ghana-panel-sub { font-size: 18px; }
+  .regions-status-bar, .ghana-status-bar { padding: 24px 32px; }
 
-  .region-header { padding: 20px 28px; }
-  .region-name { font-size: 22px; }
-  .region-count { font-size: 17px; }
+  .region-header { padding: 24px 32px; }
+  .region-name { font-size: 28px; }
+  .region-count { font-size: 20px; }
 
-  .constituency-row { padding: 22px 28px; }
-  .constituency-name { font-size: 22px; }
-  .declared-badge { font-size: 13px; padding: 5px 12px; }
-  .candidate-row { padding: 7px 0; }
-  .party-pill { font-size: 15px; padding: 5px 12px; }
-  .candidate-name { font-size: 19px; }
-  .candidate-pct { font-size: 21px; }
-  .vote-bar { height: 8px; margin-top: 12px; }
+  /* The actual content — candidate names and vote percentages — deliberately
+     get the largest jump. These are the numbers someone reads from across a
+     room; a 20-21px percentage figure is not readable at TV viewing distance. */
+  .constituency-row { padding: 28px 32px; }
+  .constituency-name { font-size: 30px; font-weight: 600; }
+  .declared-badge { font-size: 16px; padding: 6px 14px; }
+  .candidate-row { padding: 10px 0; }
+  .party-pill { font-size: 19px; padding: 6px 14px; }
+  .candidate-name { font-size: 26px; }
+  .candidate-pct { font-size: 32px; font-weight: 700; }
+  .vote-bar { height: 11px; margin-top: 16px; }
 
-  .bottom-nav { padding: 16px 0 20px; }
-  .nav-icon { font-size: 32px; }
-  .nav-label { font-size: 14px; }
-  .nav-results-icon { width: 32px; }
+  .bottom-nav { padding: 20px 0 24px; }
+  .nav-icon { font-size: 38px; }
+  .nav-label { font-size: 16px; }
+  .nav-results-icon { width: 38px; }
 
-  .splash-icon { width: 280px !important; height: 280px !important; }
+  .splash-icon { width: 300px !important; height: 300px !important; }
 }
