@@ -48,7 +48,7 @@ export default function CandidateResultRow({ results }: { results: CandidateResu
                 className="candidate-pct"
                 style={{ color: isLeader ? leaderColour : "var(--muted)" }}
               >
-                {c.votePct.toFixed(1)}%
+                {(c.votePct ?? 0).toFixed(1)}%
               </div>
             </div>
           );
