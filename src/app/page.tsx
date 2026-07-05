@@ -4,6 +4,7 @@ import { api, type Election } from "@/lib/api";
 import TopBar from "@/components/TopBar";
 import HeaderStack from "@/components/HeaderStack";
 import BottomNav, { type NavPanel } from "@/components/BottomNav";
+import SplashScreen from "@/components/SplashScreen";
 import ResultsPanel from "@/components/panels/ResultsPanel";
 import GhanaPanel from "@/components/panels/GhanaPanel";
 import RegionsPanel from "@/components/panels/RegionsPanel";
@@ -14,6 +15,7 @@ import RegionsPanel from "@/components/panels/RegionsPanel";
 const AVAILABLE_ELECTIONS = ["2016", "2012", "2008", "2008R", "2004", "2000", "2000R", "1996"];
 
 export default function HomePage() {
+  const [showSplash, setShowSplash] = useState(true);
   const [navPanel, setNavPanel] = useState<NavPanel>("results");
   const [electionType, setElectionType] = useState<"presidential" | "parliamentary">("presidential");
   const [electionCode, setElectionCode] = useState("2016");
@@ -28,66 +30,77 @@ export default function HomePage() {
 
   return (
     <>
-      <HeaderStack>
-        <TopBar
-          electionType={electionType}
-          onElectionTypeChange={setElectionType}
-          onSearchToggle={() => setSearchOpen((s) => !s)}
-        />
+      {/* Rendered on top, doesn't block the app underneath from mounting and
+          fetching data — by the time the splash fades out, real data is
+          usually already loaded, rather than making the user wait twice
+          (once for the splash, then again for the actual content). */}
+      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
 
-        {searchOpen && (
-          <div className="search-bar">
-            <input className="search-input" type="text" placeholder="Search constituency..." />
-          </div>
-        )}
+      {/* app-shell: the new max-width/centering wrapper for laptop+TV tiers.
+          On phones it's a no-op (full width, matching v10 exactly); larger
+          breakpoints (defined at the end of globals.css) cap and center it. */}
+      <div className="app-shell">
+        <HeaderStack>
+          <TopBar
+            electionType={electionType}
+            onElectionTypeChange={setElectionType}
+            onSearchToggle={() => setSearchOpen((s) => !s)}
+          />
 
-        <div className="date-bar">
-          <div className="election-badge historical">
-            <div className="live-dot" />
-            HISTORICAL RECORD
-          </div>
-          <select
-            value={electionCode}
-            onChange={(e) => setElectionCode(e.target.value)}
-            style={{ background: "transparent", border: "none", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
-          >
-            {AVAILABLE_ELECTIONS.map((code) => (
-              <option key={code} value={code} style={{ color: "#000" }}>
-                {code} General Election
-              </option>
-            ))}
-          </select>
-        </div>
-      </HeaderStack>
-
-      <div className="content">
-        <div className={`panel ${navPanel === "results" ? "active" : ""}`}>
-          {navPanel === "results" && <ResultsPanel electionType={electionType} electionCode={electionCode} />}
-        </div>
-        <div className={`panel ${navPanel === "live" ? "active" : ""}`}>
-          {navPanel === "live" && (
-            <div className="tap-hint" style={{ padding: 24 }}>
-              Live collation is a 2028 feature — station-level results don't exist for
-              historical elections. This tab activates once the 2028 pipeline is built.
+          {searchOpen && (
+            <div className="search-bar">
+              <input className="search-input" type="text" placeholder="Search constituency..." />
             </div>
           )}
-        </div>
-        <div className={`panel ${navPanel === "favourites" ? "active" : ""}`}>
-          {navPanel === "favourites" && (
-            <div className="tap-hint" style={{ padding: 24 }}>
-              Favourites — sign in required. Coming in the next pass.
+
+          <div className="date-bar">
+            <div className="election-badge historical">
+              <div className="live-dot" />
+              HISTORICAL RECORD
             </div>
-          )}
+            <select
+              value={electionCode}
+              onChange={(e) => setElectionCode(e.target.value)}
+              style={{ background: "transparent", border: "none", color: "inherit", fontFamily: "inherit", fontSize: "inherit" }}
+            >
+              {AVAILABLE_ELECTIONS.map((code) => (
+                <option key={code} value={code} style={{ color: "#000" }}>
+                  {code} General Election
+                </option>
+              ))}
+            </select>
+          </div>
+        </HeaderStack>
+
+        <div className="content">
+          <div className={`panel ${navPanel === "results" ? "active" : ""}`}>
+            {navPanel === "results" && <ResultsPanel electionType={electionType} electionCode={electionCode} />}
+          </div>
+          <div className={`panel ${navPanel === "live" ? "active" : ""}`}>
+            {navPanel === "live" && (
+              <div className="tap-hint" style={{ padding: 24 }}>
+                Live collation is a 2028 feature — station-level results don't exist for
+                historical elections. This tab activates once the 2028 pipeline is built.
+              </div>
+            )}
+          </div>
+          <div className={`panel ${navPanel === "favourites" ? "active" : ""}`}>
+            {navPanel === "favourites" && (
+              <div className="tap-hint" style={{ padding: 24 }}>
+                Favourites — sign in required. Coming in the next pass.
+              </div>
+            )}
+          </div>
+          <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
+            {navPanel === "regions" && <RegionsPanel electionType={electionType} electionCode={electionCode} />}
+          </div>
+          <div className={`panel ${navPanel === "ghana" ? "active" : ""}`}>
+            {navPanel === "ghana" && <GhanaPanel electionCode={electionCode} />}
+          </div>
         </div>
-        <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
-          {navPanel === "regions" && <RegionsPanel electionType={electionType} electionCode={electionCode} />}
-        </div>
-        <div className={`panel ${navPanel === "ghana" ? "active" : ""}`}>
-          {navPanel === "ghana" && <GhanaPanel electionCode={electionCode} />}
-        </div>
+
+        <BottomNav active={navPanel} onChange={setNavPanel} />
       </div>
-
-      <BottomNav active={navPanel} onChange={setNavPanel} />
     </>
   );
 }

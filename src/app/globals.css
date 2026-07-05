@@ -662,3 +662,120 @@
   .election-tabs.hidden{display:none}
   .topbar.tabs-hidden .election-tabs{display:none}
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE TIERS — laptop and large-display (TV) overrides
+   ═══════════════════════════════════════════════════════════════════
+   v10's original rules above are the PHONE baseline (~360-430px) and are
+   left completely untouched — they were already correctly tuned for that
+   range. Everything below follows the standard mobile-first pattern:
+   base styles first, then ADD min-width overrides for larger viewports,
+   rather than rewriting the base rules in place.
+
+   Two real tiers, based on actual devices this app is tested on:
+     - Laptop  (>=768px)  — HP 15" and similar
+     - TV/large display (>=1440px) — 32"+ external displays via HDMI
+
+   Honest limitation: a browser can't detect physical screen size or
+   viewing distance, only CSS pixel width. A 32" and 55" TV connected via
+   HDMI will often report the SAME viewport width — there's no reliable
+   way to distinguish them from CSS alone. Both are treated as one
+   generously-scaled "large display" tier, on the assumption that bigger
+   screens also tend to be viewed from proportionally farther away.
+
+   Principle at the TV tier specifically: "10-foot UI" — text and icons
+   need to be proportionally LARGER in absolute terms than a laptop at
+   arm's length, because what matters for readability is angular size in
+   your field of view, not physical screen size alone.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) {
+  /* Shell: cap width and center, rather than raw edge-to-edge stretch */
+  .app-shell {
+    max-width: 900px;
+    margin: 0 auto;
+    box-shadow: 0 0 40px rgba(0,0,0,0.3);
+  }
+
+  /* Top bar / branding */
+  .logo-text { font-size: 26px; }
+  .logo-thumb, .logo-area img { width: 40px !important; height: 40px !important; }
+  .election-tab { font-size: 13px; padding: 10px 0; }
+  .icon-btn { font-size: 22px; }
+
+  /* Date bar / election badge */
+  .election-badge { font-size: 11px; padding: 4px 10px; }
+  .date-bar { font-size: 13px; padding: 12px 20px; }
+
+  /* Region / Ghana status bars */
+  .regions-title, .ghana-panel-title { font-size: 16px; }
+  .regions-subtitle, .ghana-panel-sub { font-size: 12px; }
+  .regions-status-bar, .ghana-status-bar { padding: 14px 20px; }
+
+  /* Region headers */
+  .region-header { padding: 14px 20px; }
+  .region-name { font-size: 16px; }
+  .region-count { font-size: 13px; }
+
+  /* Constituency rows — the core repeated unit */
+  .constituency-row { padding: 16px 20px; }
+  .constituency-name { font-size: 16px; }
+  .declared-badge { font-size: 10px; padding: 3px 8px; }
+  .candidate-row { padding: 4px 0; }
+  .party-pill { font-size: 11px; padding: 3px 8px; }
+  .candidate-name { font-size: 14px; }
+  .candidate-pct { font-size: 15px; }
+  .vote-bar { height: 5px; margin-top: 8px; }
+
+  /* Bottom nav */
+  .bottom-nav { padding: 10px 0 14px; }
+  .nav-icon { font-size: 24px; }
+  .nav-label { font-size: 11px; }
+  .nav-results-icon { width: 24px; }
+
+  /* Splash screen */
+  .splash-icon { width: 220px !important; height: 220px !important; }
+}
+
+@media (min-width: 1440px) {
+  /* Shell: noticeably wider cap for large displays, still centered — not
+     full edge-to-edge, since very long line-lengths hurt readability
+     regardless of text size */
+  .app-shell {
+    max-width: 1200px;
+    box-shadow: 0 0 80px rgba(0,0,0,0.4);
+  }
+
+  /* Top bar / branding — significantly larger, 10-foot-UI scale */
+  .logo-text { font-size: 36px; letter-spacing: 4px; }
+  .logo-thumb, .logo-area img { width: 56px !important; height: 56px !important; }
+  .election-tab { font-size: 17px; padding: 14px 0; }
+  .icon-btn { font-size: 30px; }
+
+  .election-badge { font-size: 14px; padding: 6px 14px; }
+  .date-bar { font-size: 17px; padding: 18px 28px; }
+
+  .regions-title, .ghana-panel-title { font-size: 22px; }
+  .regions-subtitle, .ghana-panel-sub { font-size: 16px; }
+  .regions-status-bar, .ghana-status-bar { padding: 20px 28px; }
+
+  .region-header { padding: 20px 28px; }
+  .region-name { font-size: 22px; }
+  .region-count { font-size: 17px; }
+
+  .constituency-row { padding: 22px 28px; }
+  .constituency-name { font-size: 22px; }
+  .declared-badge { font-size: 13px; padding: 5px 12px; }
+  .candidate-row { padding: 7px 0; }
+  .party-pill { font-size: 15px; padding: 5px 12px; }
+  .candidate-name { font-size: 19px; }
+  .candidate-pct { font-size: 21px; }
+  .vote-bar { height: 8px; margin-top: 12px; }
+
+  .bottom-nav { padding: 16px 0 20px; }
+  .nav-icon { font-size: 32px; }
+  .nav-label { font-size: 14px; }
+  .nav-results-icon { width: 32px; }
+
+  .splash-icon { width: 280px !important; height: 280px !important; }
+}
