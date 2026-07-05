@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface TopBarProps {
   electionType: "presidential" | "parliamentary";
@@ -25,7 +26,14 @@ export default function TopBar({ electionType, onElectionTypeChange, onSearchTog
     <div className="topbar">
       <div className="topbar-row1">
         <div className="logo-area">
-          <div className="logo-thumb">KM</div>
+          <Image
+            src="/logo.png"
+            alt="Kokromoti"
+            width={34}
+            height={34}
+            style={{ borderRadius: 8, boxShadow: "0 0 18px rgba(240,165,0,0.35)" }}
+            priority
+          />
           <div className="logo-text">
             KOKRO<span>MOTI</span>
           </div>
