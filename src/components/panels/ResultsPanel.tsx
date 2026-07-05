@@ -3,15 +3,20 @@ import { useEffect, useState } from "react";
 import { api, type ConstituencySeatResult, type ConstituencyGeo } from "@/lib/api";
 import { CURRENT_ELECTION_CODE, pickTopTwo } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
+import type { SelectedConstituency } from "@/app/page";
 
 interface RegionGroup {
   shortName: string;
-  seats: (ConstituencySeatResult & { totalStations: number })[];
+  seats: (ConstituencySeatResult & { constituencyId: string; totalStations: number })[];
 }
 
 export default function ResultsPanel({
-  electionType, searchQuery,
-}: { electionType: "presidential" | "parliamentary"; searchQuery: string }) {
+  electionType, searchQuery, onSelectConstituency,
+}: {
+  electionType: "presidential" | "parliamentary";
+  searchQuery: string;
+  onSelectConstituency: (c: SelectedConstituency) => void;
+}) {
   const [groups, setGroups] = useState<RegionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,15 +40,11 @@ export default function ResultsPanel({
         for (const seat of seats) {
           const g = geoByName.get(seat.constituency.name);
           const regionShortName = g?.region.shortName ?? "Other";
-          // Real historical station-level data doesn't exist for 1996-2016 —
-          // stationsReporting was seeded as a 0 placeholder. Using the
-          // CURRENT (2024) station count as an honest, real-data proxy for
-          // "total" — not year-matched to 2016 specifically, but real
-          // rather than fabricated. Historical results are always fully
-          // complete, so reported == total whenever we show a count at all.
-          const totalStations = g?._count?.pollingStations ?? 0;
+          // The archived 2016-era station count — confirmed as the real
+          // figure for this election, not the current (2024) live register.
+          const totalStations = g?._count?.pollingStationArchive ?? 0;
           if (!byRegion.has(regionShortName)) byRegion.set(regionShortName, { shortName: regionShortName, seats: [] });
-          byRegion.get(regionShortName)!.seats.push({ ...seat, totalStations });
+          byRegion.get(regionShortName)!.seats.push({ ...seat, constituencyId: g?.id ?? "", totalStations });
         }
 
         const sortedGroups = [...byRegion.values()].sort((a, b) => a.shortName.localeCompare(b.shortName));
@@ -59,8 +60,6 @@ export default function ResultsPanel({
   if (loading) return <div className="tap-hint">Loading {CURRENT_ELECTION_CODE}...</div>;
   if (error) return <div className="no-results">Couldn't load results: {error}</div>;
 
-  // Same matching rule as v10's matchesSearch: case-insensitive substring,
-  // empty query matches everything.
   const query = searchQuery.trim().toLowerCase();
   const matchesSearch = (name: string) => !query || name.toLowerCase().includes(query);
 
@@ -85,7 +84,14 @@ export default function ResultsPanel({
               const topTwo = pickTopTwo(seat.results);
               const isDeclared = seat.status === "DECLARED" && seat.totalStations > 0;
               return (
-                <div className="constituency-row" key={seat.constituency.ecCode}>
+                <div
+                  className="constituency-row"
+                  key={seat.constituency.ecCode}
+                  onClick={() => seat.constituencyId && onSelectConstituency({
+                    id: seat.constituencyId, name: seat.constituency.name, regionName: group.shortName,
+                  })}
+                  style={{ cursor: "pointer" }}
+                >
                   <div className="row-top">
                     <div className="constituency-name">{seat.constituency.name}</div>
                     {isDeclared && <span className="declared-badge">DECLARED</span>}

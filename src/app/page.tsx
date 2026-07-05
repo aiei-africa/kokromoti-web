@@ -7,7 +7,10 @@ import SplashScreen from "@/components/SplashScreen";
 import ResultsPanel from "@/components/panels/ResultsPanel";
 import GhanaPanel from "@/components/panels/GhanaPanel";
 import RegionsPanel from "@/components/panels/RegionsPanel";
+import ConstituencyDrilldown from "@/components/ConstituencyDrilldown";
 import { CURRENT_ELECTION_CODE } from "@/lib/results";
+
+export interface SelectedConstituency { id: string; name: string; regionName: string; }
 
 export default function HomePage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -15,6 +18,7 @@ export default function HomePage() {
   const [electionType, setElectionType] = useState<"presidential" | "parliamentary">("presidential");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedConstituency, setSelectedConstituency] = useState<SelectedConstituency | null>(null);
 
   return (
     <>
@@ -41,25 +45,27 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* No election-year selector, by design — this build shows only the
-              current election (CURRENT_ELECTION_CODE). Older years become
-              reachable later via a constituency's Hist. Trend tab in its
-              drilldown, not a top-level dropdown. */}
+          {/* Single badge carries the election name — no separate dropdown
+              or duplicate text label. This build shows only the current
+              election (CURRENT_ELECTION_CODE); older years become reachable
+              later via a constituency's Hist. Trend tab, not a top-level
+              selector. */}
           <div className="date-bar">
             <div className="election-badge historical">
               <div className="live-dot" />
-              HISTORICAL RECORD
+              {CURRENT_ELECTION_CODE} GENERAL ELECTIONS
             </div>
-            <span style={{ fontSize: "inherit", color: "inherit" }}>
-              {CURRENT_ELECTION_CODE} General Election
-            </span>
           </div>
         </HeaderStack>
 
         <div className="content">
           <div className={`panel ${navPanel === "results" ? "active" : ""}`}>
             {navPanel === "results" && (
-              <ResultsPanel electionType={electionType} searchQuery={searchQuery} />
+              <ResultsPanel
+                electionType={electionType}
+                searchQuery={searchQuery}
+                onSelectConstituency={setSelectedConstituency}
+              />
             )}
           </div>
           <div className={`panel ${navPanel === "live" ? "active" : ""}`}>
@@ -87,6 +93,14 @@ export default function HomePage() {
 
         <BottomNav active={navPanel} onChange={setNavPanel} />
       </div>
+
+      {selectedConstituency && (
+        <ConstituencyDrilldown
+          constituency={selectedConstituency}
+          electionType={electionType}
+          onClose={() => setSelectedConstituency(null)}
+        />
+      )}
     </>
   );
 }

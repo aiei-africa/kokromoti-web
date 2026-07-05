@@ -55,9 +55,26 @@ export interface ConstituencySeatResult {
   status: string; totalCast: number | null; turnoutPct: number | null;
   results: CandidateResult[];
 }
+export interface ConstituencyFullResult {
+  id: string; status: string;
+  registeredVoters: number | null; totalCast: number | null; validVotes: number | null;
+  rejectedBallots: number | null; turnoutPct: number | null;
+  constituency: { name: string; ecCode: string };
+  votes: CandidateResult[];
+}
 export interface ConstituencyGeo {
   id: string; name: string; ecCode: string; region: { shortName: string };
-  _count?: { pollingStations: number };
+  _count?: { pollingStations: number; pollingStationArchive: number };
+}
+export interface ArchiveStation {
+  code: string; name: string; eaCode: string | null; registeredVoters: number | null;
+}
+export interface ConstituencyHistory {
+  constituency: string; electionType: string;
+  history: { electionCode: string; year: number; winner: { fullName: string; party: string | null; colourHex: string | null; votePct: number } | null }[];
+  tally: { party: string; wins: number }[];
+  electionsWithData: number;
+  isSwingSeat: boolean;
 }
 
 export const api = {
@@ -72,16 +89,20 @@ export const api = {
   presidentialByConstituency: (electionCode: string) =>
     apiFetch<ConstituencySeatResult[]>(`/results/presidential/${electionCode}/by-constituency`),
   presidentialConstituency: (electionCode: string, constituencyId: string) =>
-    apiFetch(`/results/presidential/${electionCode}/${constituencyId}`),
+    apiFetch<ConstituencyFullResult>(`/results/presidential/${electionCode}/${constituencyId}`),
   parliamentarySummary: (electionCode: string) =>
     apiFetch<ParliamentarySummary>(`/results/parliamentary/${electionCode}/summary`),
   parliamentaryAllSeats: (electionCode: string) =>
     apiFetch<ConstituencySeatResult[]>(`/results/parliamentary/${electionCode}`),
   parliamentaryConstituency: (electionCode: string, constituencyId: string) =>
-    apiFetch(`/results/parliamentary/${electionCode}/${constituencyId}`),
+    apiFetch<ConstituencyFullResult>(`/results/parliamentary/${electionCode}/${constituencyId}`),
   constituencies: (regionShortName?: string) =>
     apiFetch(`/geography/constituencies${regionShortName ? `?region=${regionShortName}` : ""}`),
   constituency: (id: string) => apiFetch(`/geography/constituencies/${id}`),
+  stationsArchive: (constituencyId: string) =>
+    apiFetch<ArchiveStation[]>(`/geography/constituencies/${constituencyId}/stations-archive`),
+  constituencyHistory: (constituencyId: string, type: "PRESIDENTIAL" | "PARLIAMENTARY") =>
+    apiFetch<ConstituencyHistory>(`/results/history/${constituencyId}?type=${type}`),
 
   register: (data: { email: string; password: string; fullName: string; phone?: string }) =>
     apiFetch("/auth/register", { method: "POST", body: JSON.stringify(data) }),
