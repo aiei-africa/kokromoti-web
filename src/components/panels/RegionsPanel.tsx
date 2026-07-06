@@ -61,7 +61,7 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
 
             <div className="reg-stats">
               <div className="reg-stat">
-                <div className="reg-stat-label">Constituencies</div>
+                <div className="reg-stat-label">{electionType === "presidential" ? "Constituencies" : "Seats"}</div>
                 <div className="reg-stat-value">{declaredConst} / {totalConst}</div>
                 <div className="reg-stat-sub">{declaredConst === 0 ? "None declared" : declaredConst === totalConst ? "All declared" : "Declared"}</div>
               </div>

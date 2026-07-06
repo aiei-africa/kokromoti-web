@@ -128,7 +128,9 @@ export default function ResultsPanel({
         <div key={group.shortName}>
           <div className="region-header" id={`region-${group.shortName}`} style={{ scrollMarginTop: "calc(var(--topbar-h, 97px) + var(--filter-bar-h, 50px))" }}>
             <div className="region-name">{group.shortName.toUpperCase()} REGION</div>
-            <div className="region-count">{group.seats.length} seats</div>
+            <div className="region-count">
+              {group.seats.length} {electionType === "presidential" ? "constituencies" : "seats"}
+            </div>
           </div>
           <div className="region-body expanded">
             {group.seats.map((seat) => {
