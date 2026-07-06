@@ -222,7 +222,7 @@
   .panel.active{display:block}
 
   /* ── RESULTS: REGION / CONSTITUENCY ── */
-  .region-header{display:flex;align-items:center;gap:10px;padding:10px 16px 8px;background:var(--bg3);border-bottom:1px solid var(--border);position:sticky;top:var(--topbar-h,97px);z-index:50;cursor:pointer;user-select:none}
+  .region-header{display:flex;align-items:center;gap:10px;padding:10px 16px 8px;background:var(--bg3);border-bottom:1px solid var(--border);position:sticky;top:calc(var(--topbar-h,97px) + var(--filter-bar-h,50px));z-index:40;cursor:pointer;user-select:none}
   .region-header:active{background:var(--bg4)}
   .fav-region-master{display:flex;align-items:center;gap:8px;padding:10px 16px 8px;background:var(--fav-region-bg);border-bottom:1px solid var(--border)}
   .fav-region-master-text{font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold)}
