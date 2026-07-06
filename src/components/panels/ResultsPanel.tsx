@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
-import { api, type ConstituencySeatResult, type ConstituencyGeo, type Region } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { api, type ConstituencySeatResult, type ConstituencyGeo } from "@/lib/api";
 import { currentElectionCodeFor, pickTopTwo } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
+import StarButton from "../StarButton";
 import type { SelectedConstituency } from "@/app/page";
 
 interface RegionGroup {
@@ -20,7 +21,8 @@ export default function ResultsPanel({
   const [groups, setGroups] = useState<RegionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [regionFilter, setRegionFilter] = useState<string | null>(null);
+  const [activeChip, setActiveChip] = useState<string | null>(null);
+  const filterBarRef = useRef<HTMLDivElement>(null);
 
   const electionCode = currentElectionCodeFor(electionType);
 
@@ -28,7 +30,7 @@ export default function ResultsPanel({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    setRegionFilter(null); // reset when switching Presidential/Parliamentary
+    setActiveChip(null);
 
     Promise.all([
       api.constituenciesGeo(),
@@ -44,12 +46,6 @@ export default function ResultsPanel({
         for (const seat of seats) {
           const g = geoByName.get(seat.constituency.name);
           const regionShortName = g?.region.shortName ?? "Other";
-          // Station register accuracy differs by era: the current (2024)
-          // register is genuinely accurate for presidential (2024), but for
-          // parliamentary (2020) neither the current nor the 2012-2016
-          // archive is truly era-matched — the archive is at least
-          // chronologically closer, so it's used as the better-available
-          // approximation rather than the more mismatched current count.
           const totalStations = electionType === "presidential"
             ? g?._count?.pollingStations ?? 0
             : g?._count?.pollingStationArchive ?? 0;
@@ -67,33 +63,55 @@ export default function ResultsPanel({
     return () => { cancelled = true; };
   }, [electionType, electionCode]);
 
+  // Measure the filter bar's own height (varies across the responsive
+  // tiers), so scroll-margin-top on each region-header can correctly
+  // account for BOTH sticky layers (header stack + this bar) — same
+  // technique HeaderStack itself uses for the header stack alone.
+  useEffect(() => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    const setHeight = () => document.documentElement.style.setProperty("--filter-bar-h", `${el.offsetHeight}px`);
+    setHeight();
+    const observer = new ResizeObserver(setHeight);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [groups.length]);
+
   if (loading) return <div className="tap-hint">Loading {electionCode}...</div>;
   if (error) return <div className="no-results">Couldn't load results: {error}</div>;
 
   const query = searchQuery.trim().toLowerCase();
   const matchesSearch = (name: string) => !query || name.toLowerCase().includes(query);
 
+  // Search genuinely filters (hiding non-matches is the correct behavior for
+  // "find this constituency"). Region chips do NOT filter — they jump to a
+  // section within the full, always-visible list; tapping "All" scrolls
+  // back to the top rather than un-hiding anything, since nothing was ever
+  // hidden by a chip tap in the first place.
   const visibleGroups = groups
     .map((group) => ({ ...group, seats: group.seats.filter((s) => matchesSearch(s.constituency.name)) }))
-    .filter((group) => group.seats.length > 0)
-    .filter((group) => !regionFilter || group.shortName === regionFilter);
+    .filter((group) => group.seats.length > 0);
+
+  function jumpToRegion(shortName: string | null) {
+    setActiveChip(shortName);
+    if (!shortName) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    document.getElementById(`region-${shortName}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <div style={{ padding: "0 0 80px" }}>
-      {/* Region filter chips — jump straight to one region instead of
-          scrolling past 270+ constituency cards. "All" clears the filter. */}
-      <div className="region-filter-bar">
-        <div
-          className={`region-filter-chip ${!regionFilter ? "active" : ""}`}
-          onClick={() => setRegionFilter(null)}
-        >
+      <div className="region-filter-bar" ref={filterBarRef}>
+        <div className={`region-filter-chip ${!activeChip ? "active" : ""}`} onClick={() => jumpToRegion(null)}>
           All
         </div>
         {groups.map((g) => (
           <div
             key={g.shortName}
-            className={`region-filter-chip ${regionFilter === g.shortName ? "active" : ""}`}
-            onClick={() => setRegionFilter(regionFilter === g.shortName ? null : g.shortName)}
+            className={`region-filter-chip ${activeChip === g.shortName ? "active" : ""}`}
+            onClick={() => jumpToRegion(g.shortName)}
           >
             {g.shortName}
           </div>
@@ -108,7 +126,7 @@ export default function ResultsPanel({
 
       {visibleGroups.map((group) => (
         <div key={group.shortName}>
-          <div className="region-header">
+          <div className="region-header" id={`region-${group.shortName}`} style={{ scrollMarginTop: "calc(var(--topbar-h, 97px) + var(--filter-bar-h, 50px))" }}>
             <div className="region-name">{group.shortName.toUpperCase()} REGION</div>
             <div className="region-count">{group.seats.length} seats</div>
           </div>
@@ -126,6 +144,7 @@ export default function ResultsPanel({
                   style={{ cursor: "pointer" }}
                 >
                   <div className="row-top">
+                    {seat.constituencyId && <StarButton type="CONSTITUENCY" id={seat.constituencyId} />}
                     <div className="constituency-name">{seat.constituency.name}</div>
                     {isDeclared && <span className="declared-badge">DECLARED</span>}
                     {seat.totalStations > 0 && (

@@ -59,7 +59,7 @@ export default function GhanaPanel() {
                   </div>
                   <div className="candidate-name">{p.seats} seats</div>
                   <div className="candidate-pct" style={{ color: "var(--muted)" }}>
-                    {((p.seats / seatSummary.totalSeats) * 100).toFixed(1)}%
+                    {((p.seats / seatSummary.totalSeats) * 100).toFixed(2)}%
                   </div>
                 </div>
               ))}

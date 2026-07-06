@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api, type Region, type RegionResults } from "@/lib/api";
 import { currentElectionCodeFor } from "@/lib/results";
 import GhanaFlag from "../GhanaFlag";
+import StarButton from "../StarButton";
 
 const FALLBACK_COLOUR = "#5C6E8A";
 const OTHER_COLOUR = "#94A3B8";
@@ -55,6 +56,7 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
             <div className="reg-card-top">
               <div className="reg-card-flag"><GhanaFlag size={24} /></div>
               <div className="reg-card-name">{region.name}</div>
+              <StarButton type="REGION" id={region.id} region />
             </div>
 
             <div className="reg-stats">
@@ -69,7 +71,7 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
                   className="reg-stat-value"
                   style={{ color: !data?.turnoutPct ? "var(--muted)" : data.turnoutPct > 60 ? "var(--ndc-light)" : data.turnoutPct > 40 ? "var(--gold)" : "var(--muted)" }}
                 >
-                  {data?.turnoutPct ? `${data.turnoutPct.toFixed(1)}%` : "—"}
+                  {data?.turnoutPct ? `${data.turnoutPct.toFixed(2)}%` : "—"}
                 </div>
                 <div className="reg-stat-sub">
                   {data ? `${data.validVotes.toLocaleString()} Valid / ${data.registeredVoters.toLocaleString()} Reg.` : "Awaiting data"}
@@ -97,7 +99,7 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
                           <div className="reg-pres-bar-fill" style={{ width: `${c.votePct}%`, background: colour }} />
                         </div>
                         <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 700, minWidth: 48, textAlign: "right", color: colour }}>
-                          {c.votePct.toFixed(1)}%
+                          {c.votePct.toFixed(2)}%
                         </div>
                       </div>
                     );

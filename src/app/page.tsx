@@ -7,12 +7,16 @@ import SplashScreen from "@/components/SplashScreen";
 import ResultsPanel from "@/components/panels/ResultsPanel";
 import GhanaPanel from "@/components/panels/GhanaPanel";
 import RegionsPanel from "@/components/panels/RegionsPanel";
+import FavouritesPanel from "@/components/panels/FavouritesPanel";
 import ConstituencyDrilldown from "@/components/ConstituencyDrilldown";
+import AuthModal from "@/components/AuthModal";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import { currentElectionCodeFor } from "@/lib/results";
 
 export interface SelectedConstituency { id: string; name: string; regionName: string; }
 
-export default function HomePage() {
+function AppShell() {
   const [showSplash, setShowSplash] = useState(true);
   const [navPanel, setNavPanel] = useState<NavPanel>("results");
   const [electionType, setElectionType] = useState<"presidential" | "parliamentary">("presidential");
@@ -32,11 +36,6 @@ export default function HomePage() {
             onSearchToggle={() => setSearchOpen((s) => !s)}
           />
 
-          {/* Bug fix: v10's CSS requires the "open" class to make this
-              visible (.search-bar itself is display:none by default,
-              .search-bar.open overrides to display:flex) — the class was
-              never actually applied here before, so the input existed in
-              the DOM but was permanently invisible regardless of state. */}
           {searchOpen && (
             <div className="search-bar open">
               <input
@@ -50,8 +49,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Badge is dynamic now — Presidential and Parliamentary each
-              track their own current election year independently. */}
           <div className="date-bar">
             <div className="election-badge historical">
               <div className="live-dot" />
@@ -80,9 +77,7 @@ export default function HomePage() {
           </div>
           <div className={`panel ${navPanel === "favourites" ? "active" : ""}`}>
             {navPanel === "favourites" && (
-              <div className="tap-hint" style={{ padding: 24 }}>
-                Favourites — sign in required. Coming in the next pass.
-              </div>
+              <FavouritesPanel onSelectConstituency={setSelectedConstituency} />
             )}
           </div>
           <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
@@ -103,6 +98,18 @@ export default function HomePage() {
           onClose={() => setSelectedConstituency(null)}
         />
       )}
+
+      <AuthModal />
     </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <AuthProvider>
+      <FavouritesProvider>
+        <AppShell />
+      </FavouritesProvider>
+    </AuthProvider>
   );
 }

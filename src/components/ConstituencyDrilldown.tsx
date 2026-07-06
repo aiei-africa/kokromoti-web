@@ -59,7 +59,7 @@ export default function ConstituencyDrilldown({
   const sortedVotes = result?.votes ? [...result.votes].sort((a, b) => b.votePct - a.votePct) : [];
   const leader = sortedVotes[0];
   const runnerUp = sortedVotes[1];
-  const margin = leader && runnerUp ? ((leader.votePct ?? 0) - (runnerUp.votePct ?? 0)).toFixed(1) : null;
+  const margin = leader && runnerUp ? ((leader.votePct ?? 0) - (runnerUp.votePct ?? 0)).toFixed(2) : null;
 
   return (
     <div className="drilldown-overlay open">
@@ -96,7 +96,7 @@ export default function ConstituencyDrilldown({
                 </div>
                 <div className="dd-leader-name">{nameOf(leader)}</div>
                 <div className="dd-leader-pct" style={{ color: partyOf(leader)?.colourHex || FALLBACK_COLOUR }}>
-                  {(leader.votePct ?? 0).toFixed(1)}%
+                  {(leader.votePct ?? 0).toFixed(2)}%
                 </div>
               </div>
             )}
@@ -118,7 +118,7 @@ export default function ConstituencyDrilldown({
                       <div className="dd-cand-bar" style={{ width: `${c.votePct}%`, background: colour }} />
                     </div>
                     <div className="dd-cand-votes">{c.votes.toLocaleString()}</div>
-                    <div className="dd-cand-pct" style={{ color: colour }}>{(c.votePct ?? 0).toFixed(1)}%</div>
+                    <div className="dd-cand-pct" style={{ color: colour }}>{(c.votePct ?? 0).toFixed(2)}%</div>
                   </div>
                 );
               })}
@@ -130,7 +130,7 @@ export default function ConstituencyDrilldown({
               <div className="dd-va-row"><span className="dd-va-label">Votes Cast</span><span className="dd-va-value">{result.totalCast?.toLocaleString() ?? "—"}</span></div>
               <div className="dd-va-row"><span className="dd-va-label">Valid Votes</span><span className="dd-va-value highlight">{result.validVotes?.toLocaleString() ?? "—"}</span></div>
               <div className="dd-va-row"><span className="dd-va-label">Rejected Ballots</span><span className="dd-va-value warn">{result.rejectedBallots?.toLocaleString() ?? "—"}</span></div>
-              <div className="dd-va-row"><span className="dd-va-label">Turnout Rate</span><span className="dd-va-value highlight">{result.turnoutPct?.toFixed(1) ?? "—"}%</span></div>
+              <div className="dd-va-row"><span className="dd-va-label">Turnout Rate</span><span className="dd-va-value highlight">{result.turnoutPct?.toFixed(2) ?? "—"}%</span></div>
             </div>
 
             <div className="dd-stats-grid">
@@ -231,7 +231,7 @@ export default function ConstituencyDrilldown({
                     {h.winner ? (
                       <div className="dd-h2h-row">
                         <div className="dd-h2h-name">{h.winner.fullName}</div>
-                        <div className="dd-h2h-pct" style={{ color: h.winner.colourHex || FALLBACK_COLOUR }}>{(h.winner.votePct ?? 0).toFixed(1)}%</div>
+                        <div className="dd-h2h-pct" style={{ color: h.winner.colourHex || FALLBACK_COLOUR }}>{(h.winner.votePct ?? 0).toFixed(2)}%</div>
                       </div>
                     ) : (
                       <div className="dd-h2h-turnout">No data on record for {h.year}.</div>

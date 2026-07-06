@@ -62,6 +62,12 @@ export interface ConstituencyFullResult {
   constituency: { name: string; ecCode: string };
   votes: CandidateResult[];
 }
+export interface FavouritesResponse {
+  constituencies: { id: string; name: string; ecCode: string; region: { shortName: string } }[];
+  regions: { id: string; name: string; shortName: string }[];
+  parties: { id: string; name: string; abbreviation: string; colourHex: string | null }[];
+  favouritedAt: Record<string, string>;
+}
 export interface ConstituencyGeo {
   id: string; name: string; ecCode: string; region: { shortName: string };
   _count?: { pollingStations: number; pollingStationArchive: number };
@@ -110,7 +116,7 @@ export const api = {
     apiFetch("/auth/register", { method: "POST", body: JSON.stringify(data) }),
   login: (email: string, password: string) =>
     apiFetch<{ accessToken: string; user: any }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
-  favourites: (token: string) => apiFetch("/favourites", { headers: { Authorization: `Bearer ${token}` } }),
+  favourites: (token: string) => apiFetch<FavouritesResponse>("/favourites", { headers: { Authorization: `Bearer ${token}` } }),
   addFavourite: (token: string, entityType: string, entityId: string) =>
     apiFetch("/favourites", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ entityType, entityId }) }),
   removeFavourite: (token: string, entityType: string, entityId: string) =>
