@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, type Region, type RegionResults } from "@/lib/api";
-import { CURRENT_ELECTION_CODE } from "@/lib/results";
+import { currentElectionCodeFor } from "@/lib/results";
 import GhanaFlag from "../GhanaFlag";
 
 const FALLBACK_COLOUR = "#5C6E8A";
@@ -21,11 +21,12 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
     let cancelled = false;
     setLoading(true);
     const type = electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY";
+    const electionCode = currentElectionCodeFor(electionType);
 
     api.regions().then(async (regions) => {
       const sorted = [...regions].sort((a, b) => a.name.localeCompare(b.name));
       const results = await Promise.all(
-        sorted.map((r) => api.regionResults(r.id, CURRENT_ELECTION_CODE, type).catch(() => null))
+        sorted.map((r) => api.regionResults(r.id, electionCode, type).catch(() => null))
       );
       if (cancelled) return;
       setCards(sorted.map((region, i) => ({ region, data: results[i] })));

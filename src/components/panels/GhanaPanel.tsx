@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, type PresidentialNational, type ParliamentarySummary } from "@/lib/api";
-import { CURRENT_ELECTION_CODE } from "@/lib/results";
+import { CURRENT_PRESIDENTIAL_ELECTION_CODE, CURRENT_PARLIAMENTARY_ELECTION_CODE } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
 
+// Shows both election types simultaneously (unlike Results, which is
+// tab-scoped to one type at a time) — so it independently tracks each
+// type's own current year rather than depending on any outer tab state.
 export default function GhanaPanel() {
   const [national, setNational] = useState<PresidentialNational | null>(null);
   const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
@@ -12,8 +15,8 @@ export default function GhanaPanel() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.presidentialNational(CURRENT_ELECTION_CODE).catch(() => null),
-      api.parliamentarySummary(CURRENT_ELECTION_CODE).catch(() => null),
+      api.presidentialNational(CURRENT_PRESIDENTIAL_ELECTION_CODE).catch(() => null),
+      api.parliamentarySummary(CURRENT_PARLIAMENTARY_ELECTION_CODE).catch(() => null),
     ]).then(([n, s]) => {
       setNational(n);
       setSeatSummary(s);
@@ -25,7 +28,7 @@ export default function GhanaPanel() {
     <div id="panel-ghana">
       <div className="ghana-status-bar">
         <span className="ghana-panel-title">🇬🇭 NATIONAL SUMMARY</span>
-        <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : CURRENT_ELECTION_CODE}</span>
+        <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : "All-time"}</span>
       </div>
       <div style={{ padding: "0 0 80px" }}>
         {national && (
@@ -41,7 +44,7 @@ export default function GhanaPanel() {
           <div className="constituency-row">
             <div className="row-top">
               <div className="constituency-name">
-                Parliamentary — {seatSummary.declaredSeats}/{seatSummary.totalSeats} seats declared
+                Parliamentary — {seatSummary.election} — {seatSummary.declaredSeats}/{seatSummary.totalSeats} seats declared
               </div>
               {seatSummary.hasMajority && <span className="declared-badge">MAJORITY</span>}
             </div>
@@ -65,7 +68,7 @@ export default function GhanaPanel() {
         )}
 
         {!national && !seatSummary && !loading && (
-          <div className="no-results">No national data available for {CURRENT_ELECTION_CODE} yet.</div>
+          <div className="no-results">No national data available yet.</div>
         )}
       </div>
     </div>

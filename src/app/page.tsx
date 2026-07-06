@@ -8,7 +8,7 @@ import ResultsPanel from "@/components/panels/ResultsPanel";
 import GhanaPanel from "@/components/panels/GhanaPanel";
 import RegionsPanel from "@/components/panels/RegionsPanel";
 import ConstituencyDrilldown from "@/components/ConstituencyDrilldown";
-import { CURRENT_ELECTION_CODE } from "@/lib/results";
+import { currentElectionCodeFor } from "@/lib/results";
 
 export interface SelectedConstituency { id: string; name: string; regionName: string; }
 
@@ -32,8 +32,13 @@ export default function HomePage() {
             onSearchToggle={() => setSearchOpen((s) => !s)}
           />
 
+          {/* Bug fix: v10's CSS requires the "open" class to make this
+              visible (.search-bar itself is display:none by default,
+              .search-bar.open overrides to display:flex) — the class was
+              never actually applied here before, so the input existed in
+              the DOM but was permanently invisible regardless of state. */}
           {searchOpen && (
-            <div className="search-bar">
+            <div className="search-bar open">
               <input
                 className="search-input"
                 type="text"
@@ -45,15 +50,12 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Single badge carries the election name — no separate dropdown
-              or duplicate text label. This build shows only the current
-              election (CURRENT_ELECTION_CODE); older years become reachable
-              later via a constituency's Hist. Trend tab, not a top-level
-              selector. */}
+          {/* Badge is dynamic now — Presidential and Parliamentary each
+              track their own current election year independently. */}
           <div className="date-bar">
             <div className="election-badge historical">
               <div className="live-dot" />
-              {CURRENT_ELECTION_CODE} GENERAL ELECTIONS
+              {currentElectionCodeFor(electionType)} GENERAL ELECTIONS
             </div>
           </div>
         </HeaderStack>

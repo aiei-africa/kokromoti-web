@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, type ConstituencyFullResult, type ArchiveStation, type ConstituencyHistory, type CandidateResult } from "@/lib/api";
-import { CURRENT_ELECTION_CODE } from "@/lib/results";
+import { currentElectionCodeFor } from "@/lib/results";
 import type { SelectedConstituency } from "@/app/page";
 
 type Tab = "summary" | "stations" | "history" | "facts" | "news";
@@ -27,13 +27,14 @@ export default function ConstituencyDrilldown({
   const [history, setHistory] = useState<ConstituencyHistory | null>(null);
   const [facts, setFacts] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const electionCode = currentElectionCodeFor(electionType);
 
   useEffect(() => {
     setLoading(true);
     const resultFetch =
       electionType === "presidential"
-        ? api.presidentialConstituency(CURRENT_ELECTION_CODE, constituency.id)
-        : api.parliamentaryConstituency(CURRENT_ELECTION_CODE, constituency.id);
+        ? api.presidentialConstituency(electionCode, constituency.id)
+        : api.parliamentaryConstituency(electionCode, constituency.id);
 
     Promise.all([
       resultFetch.catch(() => null),
@@ -148,14 +149,14 @@ export default function ConstituencyDrilldown({
               </div>
               <div className="dd-stat">
                 <div className="dd-stat-label">Election</div>
-                <div className="dd-stat-value">{CURRENT_ELECTION_CODE}</div>
+                <div className="dd-stat-value">{electionCode}</div>
               </div>
             </div>
           </>
         )}
 
         {!loading && tab === "summary" && !result && (
-          <div className="no-results" style={{ padding: 24 }}>No {electionType} result on record for this constituency in {CURRENT_ELECTION_CODE}.</div>
+          <div className="no-results" style={{ padding: 24 }}>No {electionType} result on record for this constituency in {electionCode}.</div>
         )}
 
         {tab === "stations" && (
@@ -257,7 +258,7 @@ export default function ConstituencyDrilldown({
                   <div className="dd-profile-item-value">{constituency.regionName}</div>
                 </div>
                 <div className="dd-profile-item">
-                  <div className="dd-profile-item-label">Registered Voters ({CURRENT_ELECTION_CODE})</div>
+                  <div className="dd-profile-item-label">Registered Voters ({electionCode})</div>
                   <div className="dd-profile-item-value">{result?.registeredVoters?.toLocaleString() ?? "—"}</div>
                 </div>
               </div>
