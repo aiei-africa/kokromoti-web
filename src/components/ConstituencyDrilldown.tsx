@@ -47,7 +47,7 @@ export default function ConstituencyDrilldown({
 
   useEffect(() => {
     if (tab === "stations" && !stations) {
-      api.stationsArchive(constituency.id).then(setStations).catch(() => setStations([]));
+      api.stationsCurrent(constituency.id).then(setStations).catch(() => setStations([]));
     }
     if (tab === "history" && !history) {
       const type = electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY";
@@ -167,7 +167,7 @@ export default function ConstituencyDrilldown({
             {stations && stations.length > 0 && (
               <>
                 <div className="dd-vote-accounting-hdr" style={{ padding: "8px 16px" }}>
-                  {stations.length} STATIONS · 2012–2016 LEGACY REGISTER
+                  {stations.length} STATIONS · 2024 EC REGISTER
                 </div>
                 {stations.map((s) => (
                   <div className="dd-va-row" style={{ padding: "6px 16px" }} key={s.code}>

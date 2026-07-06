@@ -40,9 +40,10 @@ export default function ResultsPanel({
         for (const seat of seats) {
           const g = geoByName.get(seat.constituency.name);
           const regionShortName = g?.region.shortName ?? "Other";
-          // The archived 2016-era station count — confirmed as the real
-          // figure for this election, not the current (2024) live register.
-          const totalStations = g?._count?.pollingStationArchive ?? 0;
+          // The current (2024) EC station register — genuinely accurate for
+          // this election, not a proxy like the archived 2012-2016 data was
+          // for 2016.
+          const totalStations = g?._count?.pollingStations ?? 0;
           if (!byRegion.has(regionShortName)) byRegion.set(regionShortName, { shortName: regionShortName, seats: [] });
           byRegion.get(regionShortName)!.seats.push({ ...seat, constituencyId: g?.id ?? "", totalStations });
         }

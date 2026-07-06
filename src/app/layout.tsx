@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s — Kokromoti",
   },
   description:
-    "Ghana's election intelligence platform — verified historical results (1992–2016), built by AIEI, the African Institute for Electoral Intelligence.",
+    "Ghana's election intelligence platform — verified historical results (1992–2024), built by AIEI, the African Institute for Electoral Intelligence.",
   applicationName: "Kokromoti",
   keywords: ["Ghana elections", "election results", "Kokromoti", "AIEI", "electoral intelligence", "Ghana politics"],
   authors: [{ name: "AIEI — African Institute for Electoral Intelligence" }],
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: "Kokromoti",
     title: "Kokromoti — Ghana Election Results",
-    description: "Election Intelligence. Power to the People. Verified historical Ghana election results, 1992–2016.",
+    description: "Election Intelligence. Power to the People. Verified historical Ghana election results, 1992–2024.",
     // opengraph-image.png is auto-detected by Next.js from src/app/ — no need
     // to reference it manually here.
   },

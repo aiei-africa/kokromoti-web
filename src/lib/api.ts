@@ -101,6 +101,8 @@ export const api = {
   constituency: (id: string) => apiFetch(`/geography/constituencies/${id}`),
   stationsArchive: (constituencyId: string) =>
     apiFetch<ArchiveStation[]>(`/geography/constituencies/${constituencyId}/stations-archive`),
+  stationsCurrent: (constituencyId: string) =>
+    apiFetch<ArchiveStation[]>(`/geography/constituencies/${constituencyId}/stations-current`),
   constituencyHistory: (constituencyId: string, type: "PRESIDENTIAL" | "PARLIAMENTARY") =>
     apiFetch<ConstituencyHistory>(`/results/history/${constituencyId}?type=${type}`),
 
