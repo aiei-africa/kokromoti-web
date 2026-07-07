@@ -995,3 +995,38 @@
   .auth-modal-input { font-size: 17px; padding: 15px 18px; }
   .auth-modal-submit { font-size: 18px; padding: 15px; }
 }
+
+/* ── ACCOUNT PANEL — dropdown from the profile icon, new UI, no v10
+   precedent. Matches the existing dark/gold design language. ── */
+.account-panel {
+  position: absolute; top: 44px; right: 0; z-index: 200;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; min-width: 220px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.account-panel-name {
+  font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: var(--white);
+}
+.account-panel-email { font-size: 12px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+.account-panel-unverified {
+  font-size: 11px; color: var(--gold); margin-top: 8px; padding: 4px 8px;
+  background: var(--gold-dim)22; border-radius: 4px; display: inline-block;
+}
+.account-panel-signout {
+  width: 100%; margin-top: 14px; padding: 9px; border-radius: 6px;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--white);
+  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.account-panel-signout:active { background: var(--bg4); }
+
+@media (min-width: 768px) {
+  .account-panel { min-width: 260px; padding: 20px; top: 52px; }
+  .account-panel-name { font-size: 18px; }
+  .account-panel-email { font-size: 13px; }
+}
+@media (min-width: 1440px) {
+  .account-panel { min-width: 300px; padding: 24px; top: 64px; }
+  .account-panel-name { font-size: 21px; }
+  .account-panel-email { font-size: 15px; }
+  .account-panel-signout { font-size: 15px; padding: 12px; }
+}
