@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { api, type Region, type RegionResults } from "@/lib/api";
 import { currentElectionCodeFor } from "@/lib/results";
 import GhanaFlag from "../GhanaFlag";
-import StarButton from "../StarButton";
 
 const FALLBACK_COLOUR = "#5C6E8A";
 const OTHER_COLOUR = "#94A3B8";
@@ -56,7 +55,6 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
             <div className="reg-card-top">
               <div className="reg-card-flag"><GhanaFlag size={24} /></div>
               <div className="reg-card-name">{region.name}</div>
-              <StarButton type="REGION" id={region.id} region />
             </div>
 
             <div className="reg-stats">

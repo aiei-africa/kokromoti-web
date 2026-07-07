@@ -1,16 +1,15 @@
 "use client";
 import { useFavourites } from "@/contexts/FavouritesContext";
 
-export default function StarButton({
-  type, id, region = false,
-}: { type: "CONSTITUENCY" | "REGION"; id: string; region?: boolean }) {
+// Constituencies only — see FavouritesContext for why regions were dropped.
+export default function StarButton({ id }: { id: string }) {
   const { isFavourited, toggleFavourite } = useFavourites();
-  const starred = isFavourited(type, id);
+  const starred = isFavourited("CONSTITUENCY", id);
 
   return (
     <button
-      className={`${region ? "region-star-btn" : "star-btn"} ${starred ? "starred" : ""}`}
-      onClick={(e) => { e.stopPropagation(); toggleFavourite(type, id); }}
+      className={`star-btn ${starred ? "starred" : ""}`}
+      onClick={(e) => { e.stopPropagation(); toggleFavourite("CONSTITUENCY", id); }}
       aria-label={starred ? "Remove favourite" : "Add favourite"}
     >
       {starred ? "★" : "☆"}

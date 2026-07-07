@@ -1,15 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { api, type ConstituencySeatResult, type ConstituencyGeo, type Region } from "@/lib/api";
+import { api, type ConstituencySeatResult, type ConstituencyGeo } from "@/lib/api";
 import { currentElectionCodeFor, pickTopTwo } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
 import StarButton from "../StarButton";
-import { useFavourites } from "@/contexts/FavouritesContext";
 import type { SelectedConstituency } from "@/app/page";
 
 interface RegionGroup {
   shortName: string;
-  regionId: string | null;
   seats: (ConstituencySeatResult & { constituencyId: string; totalStations: number })[];
 }
 
@@ -25,7 +23,6 @@ export default function ResultsPanel({
   const [error, setError] = useState<string | null>(null);
   const [activeChip, setActiveChip] = useState<string | null>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
-  const { isFavourited } = useFavourites();
 
   const electionCode = currentElectionCodeFor(electionType);
 
@@ -37,15 +34,13 @@ export default function ResultsPanel({
 
     Promise.all([
       api.constituenciesGeo(),
-      api.regions(),
       electionType === "presidential"
         ? api.presidentialByConstituency(electionCode)
         : api.parliamentaryAllSeats(electionCode),
     ])
-      .then(([geo, regions, seats]) => {
+      .then(([geo, seats]) => {
         if (cancelled) return;
         const geoByName = new Map<string, ConstituencyGeo>(geo.map((g) => [g.name, g]));
-        const regionIdByShortName = new Map<string, string>(regions.map((r) => [r.shortName, r.id]));
         const byRegion = new Map<string, RegionGroup>();
 
         for (const seat of seats) {
@@ -54,13 +49,7 @@ export default function ResultsPanel({
           const totalStations = electionType === "presidential"
             ? g?._count?.pollingStations ?? 0
             : g?._count?.pollingStationArchive ?? 0;
-          if (!byRegion.has(regionShortName)) {
-            byRegion.set(regionShortName, {
-              shortName: regionShortName,
-              regionId: regionIdByShortName.get(regionShortName) ?? null,
-              seats: [],
-            });
-          }
+          if (!byRegion.has(regionShortName)) byRegion.set(regionShortName, { shortName: regionShortName, seats: [] });
           byRegion.get(regionShortName)!.seats.push({ ...seat, constituencyId: g?.id ?? "", totalStations });
         }
 
@@ -98,14 +87,6 @@ export default function ResultsPanel({
     .map((group) => ({ ...group, seats: group.seats.filter((s) => matchesSearch(s.constituency.name)) }))
     .filter((group) => group.seats.length > 0);
 
-  // Real v10 behavior, confirmed against its actual source (renderFavRegions,
-  // called at the top of renderResultsPanel): favourite REGIONS get a
-  // dedicated summary block injected above the normal alphabetical list,
-  // sorted alphabetically within it. The region still also appears in its
-  // normal position below, unchanged — this is an additional summary, not a
-  // removal/reorder.
-  const favouriteRegions = groups.filter((g) => g.regionId && isFavourited("REGION", g.regionId));
-
   function jumpToRegion(shortName: string | null) {
     setActiveChip(shortName);
     if (!shortName) {
@@ -131,23 +112,6 @@ export default function ResultsPanel({
           </div>
         ))}
       </div>
-
-      {favouriteRegions.length > 0 && !query && (
-        <div className="fav-region-master">
-          <span>⭐</span>
-          <span className="fav-region-master-text">&nbsp;FAVOURITE REGIONS</span>
-        </div>
-      )}
-      {favouriteRegions.length > 0 && !query && favouriteRegions.map((group) => (
-        <div key={`fav-${group.shortName}`}>
-          <div className="region-header" onClick={() => jumpToRegion(group.shortName)} style={{ cursor: "pointer" }}>
-            <div className="region-name">{group.shortName.toUpperCase()} REGION</div>
-            <div className="region-count">
-              {group.seats.length} {electionType === "presidential" ? "constituencies" : "seats"}
-            </div>
-          </div>
-        </div>
-      ))}
 
       {!visibleGroups.length && (
         <div className="no-results">
@@ -177,7 +141,7 @@ export default function ResultsPanel({
                   style={{ cursor: "pointer" }}
                 >
                   <div className="row-top">
-                    {seat.constituencyId && <StarButton type="CONSTITUENCY" id={seat.constituencyId} />}
+                    {seat.constituencyId && <StarButton id={seat.constituencyId} />}
                     <div className="constituency-name">{seat.constituency.name}</div>
                     {isDeclared && <span className="declared-badge">DECLARED</span>}
                     {seat.totalStations > 0 && (

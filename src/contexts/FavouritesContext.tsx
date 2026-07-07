@@ -3,7 +3,10 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { api, type FavouritesResponse } from "@/lib/api";
 import { useAuth } from "./AuthContext";
 
-type EntityType = "CONSTITUENCY" | "REGION";
+// Constituencies only — regions never needed a favourites mechanism (only
+// 16 of them), that was an implementation-time addition beyond the
+// original idea, now removed.
+type EntityType = "CONSTITUENCY";
 
 interface FavouritesContextValue {
   favouritedIds: Set<string>; // "TYPE:id" keys
@@ -28,7 +31,6 @@ export function FavouritesProvider({ children }: { children: React.ReactNode }) 
       .then((data: FavouritesResponse) => {
         const ids = new Set<string>();
         for (const c of data.constituencies ?? []) ids.add(key("CONSTITUENCY", c.id));
-        for (const r of data.regions ?? []) ids.add(key("REGION", r.id));
         setFavouritedIds(ids);
       })
       .catch(() => {})
