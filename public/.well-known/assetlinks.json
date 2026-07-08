@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "org.aiei.kokromoti",
-    "sha256_cert_fingerprints": ["1F:23:1D:17:97:97:EF:5F:98:C4:54:5A:24:E8:7E:E1:4F:F4:21:67:D4:FC:0B:B2:B9:67:DA:4B:96:DA:EA:40"]
+    "sha256_cert_fingerprints": ["BD:8B:69:AD:52:AF:B5:4C:7F:A2:42:93:6F:22:2A:5C:6C:09:30:03:27:76:CD:74:5D:2B:E2:F1:2A:79:1C:B0"]
   }
 }]
