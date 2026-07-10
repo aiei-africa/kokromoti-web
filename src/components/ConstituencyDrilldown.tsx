@@ -48,7 +48,13 @@ export default function ConstituencyDrilldown({
 
   useEffect(() => {
     if (tab === "stations" && !stations) {
-      api.stationsCurrent(constituency.id).then(setStations).catch(() => setStations([]));
+      // Same era-matching principle as ResultsPanel: base this on the
+      // actual year shown, not hardcoded to always-current. This was a
+      // real latent bug — always fetching the current 2024 register even
+      // while Parliamentary was still showing 2020 data, silently
+      // mismatched the whole time.
+      const fetchStations = electionCode === "2024" ? api.stationsCurrent(constituency.id) : api.stationsArchive(constituency.id);
+      fetchStations.then(setStations).catch(() => setStations([]));
     }
     if (tab === "history" && !history) {
       const type = electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY";
@@ -168,7 +174,7 @@ export default function ConstituencyDrilldown({
             {stations && stations.length > 0 && (
               <>
                 <div className="dd-vote-accounting-hdr" style={{ padding: "8px 16px" }}>
-                  {stations.length} STATIONS · 2024 EC REGISTER
+                  {stations.length} STATIONS · {electionCode === "2024" ? "2024 EC REGISTER" : "2012–2016 LEGACY REGISTER"}
                 </div>
                 {stations.map((s) => (
                   <div className="dd-va-row" style={{ padding: "6px 16px" }} key={s.code}>

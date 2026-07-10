@@ -6,7 +6,7 @@ import type { CandidateResult } from "./api";
 // results alongside 2020 parliamentary results at the same time, each on
 // its own tab. Bump each constant independently as more years get seeded.
 export const CURRENT_PRESIDENTIAL_ELECTION_CODE = "2024";
-export const CURRENT_PARLIAMENTARY_ELECTION_CODE = "2020";
+export const CURRENT_PARLIAMENTARY_ELECTION_CODE = "2024";
 
 export function currentElectionCodeFor(electionType: "presidential" | "parliamentary"): string {
   return electionType === "presidential" ? CURRENT_PRESIDENTIAL_ELECTION_CODE : CURRENT_PARLIAMENTARY_ELECTION_CODE;

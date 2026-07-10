@@ -46,7 +46,13 @@ export default function ResultsPanel({
         for (const seat of seats) {
           const g = geoByName.get(seat.constituency.name);
           const regionShortName = g?.region.shortName ?? "Other";
-          const totalStations = electionType === "presidential"
+          // Station register accuracy is about ERA, not race type — basing
+          // this on electionCode (the actual year shown) rather than
+          // electionType means it stays correct if either race ever points
+          // at a different year again in the future, instead of silently
+          // breaking the way the type-based version did when Parliamentary
+          // was still on 2020.
+          const totalStations = electionCode === "2024"
             ? g?._count?.pollingStations ?? 0
             : g?._count?.pollingStationArchive ?? 0;
           if (!byRegion.has(regionShortName)) byRegion.set(regionShortName, { shortName: regionShortName, seats: [] });
