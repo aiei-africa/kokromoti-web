@@ -77,13 +77,29 @@ export interface ArchiveStation {
 }
 export interface ConstituencyHistory {
   constituency: string; electionType: string;
-  history: { electionCode: string; year: number; winner: { fullName: string; party: string | null; colourHex: string | null; votePct: number } | null }[];
+  history: {
+    electionCode: string; year: number; provisional: boolean;
+    winner: { fullName: string; party: string | null; colourHex: string | null; votes: number; votePct: number } | null;
+    candidates: { fullName: string; party: string | null; colourHex: string | null; votes: number; votePct: number }[];
+    registeredVoters: number | null; totalCast: number | null; validVotes: number | null;
+    rejectedBallots: number | null; turnoutPct: number | null; margin: number | null;
+    source: string | null; status: string | null; stationsReporting: number | null;
+    stationsTotal: number | null; declaredAt: string | null; notes: string | null;
+  }[];
+  trend: {
+    NDC: { colourHex: string | null; points: { year: number; electionCode: string; votePct: number; provisional: boolean }[] };
+    NPP: { colourHex: string | null; points: { year: number; electionCode: string; votePct: number; provisional: boolean }[] };
+    Others: { colourHex: string | null; points: { year: number; electionCode: string; votePct: number; provisional: boolean }[] };
+  };
   tally: { party: string; wins: number }[];
   electionsWithData: number;
   isSwingSeat: boolean;
 }
 
 export const api = {
+  mapConstituencyBoundaries: () => apiFetch<any>("/map-dashboard/constituency-boundaries"),
+  mapTrend: (queryString: string) => apiFetch<any>(`/map-dashboard/trend?${queryString}`),
+  mapRegions: () => apiFetch<any[]>("/map-dashboard/regions"),
   elections: () => apiFetch<Election[]>("/elections"),
   election: (code: string) => apiFetch<Election>(`/elections/${code}`),
   regions: () => apiFetch<Region[]>("/geography/regions"),
