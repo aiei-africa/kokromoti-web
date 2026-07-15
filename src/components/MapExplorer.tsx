@@ -135,6 +135,17 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     clearLayer();
     setMapState("region-filtered");
     const filtered = { type: "FeatureCollection", features: constituenciesGeoJSON.features.filter((f: any) => f.properties.region === targetRegion) };
+    if (filtered.features.length === 0) {
+      // A region name that doesn't match anything in the live constituency
+      // data — calling fitBounds on an empty layer throws ("Bounds are not
+      // valid"), so this stops short instead of crashing. Real cause
+      // fixed at the data level (a stale static file had hyphenated region
+      // names where the live backend uses spaces), but this guard stays
+      // regardless, since any future naming drift between a static asset
+      // and the live database should fail quietly, not crash the app.
+      console.warn(`No constituencies matched region "${targetRegion}" — check for a naming mismatch between the region source and live data.`);
+      return;
+    }
     const layer = L.geoJSON(filtered as any, {
       style: constStyle,
       onEachFeature: (feature, lyr) => {
