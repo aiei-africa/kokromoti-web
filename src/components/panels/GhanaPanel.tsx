@@ -1,13 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { api, type PresidentialNational, type ParliamentarySummary } from "@/lib/api";
 import { CURRENT_PRESIDENTIAL_ELECTION_CODE, CURRENT_PARLIAMENTARY_ELECTION_CODE } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
 
+const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
+
 // Shows both election types simultaneously (unlike Results, which is
 // tab-scoped to one type at a time) — so it independently tracks each
 // type's own current year rather than depending on any outer tab state.
-export default function GhanaPanel() {
+export default function GhanaPanel({ onNavigateToRegion }: { onNavigateToRegion: (regionName: string) => void }) {
   const [national, setNational] = useState<PresidentialNational | null>(null);
   const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +33,9 @@ export default function GhanaPanel() {
         <span className="ghana-panel-title">🇬🇭 NATIONAL SUMMARY</span>
         <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : "All-time"}</span>
       </div>
+
+      <MapExplorer mode="full" onNavigateToRegion={onNavigateToRegion} />
+
       <div style={{ padding: "0 0 80px" }}>
         {national && (
           <div className="constituency-row">

@@ -23,6 +23,22 @@ function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConstituency, setSelectedConstituency] = useState<SelectedConstituency | null>(null);
+  const [constituencyInitialTab, setConstituencyInitialTab] = useState<"summary" | "history">("summary");
+  // Which region to show on the Regions tab, when arriving there via a tap
+  // on the Ghana tab's national map rather than direct bottom-nav
+  // navigation. Direct navigation (handleNavChange below) clears this, so
+  // tapping "Regions" normally still shows the existing full card list.
+  const [regionFocus, setRegionFocus] = useState<string | null>(null);
+
+  function handleNavChange(panel: NavPanel) {
+    if (panel !== "regions") setRegionFocus(null);
+    setNavPanel(panel);
+  }
+
+  function handleSelectConstituencyFromMap(id: string, name: string, regionName: string | null) {
+    setConstituencyInitialTab("history");
+    setSelectedConstituency({ id, name, regionName: regionName ?? "" });
+  }
 
   return (
     <>
@@ -63,7 +79,7 @@ function AppShell() {
               <ResultsPanel
                 electionType={electionType}
                 searchQuery={searchQuery}
-                onSelectConstituency={setSelectedConstituency}
+                onSelectConstituency={(c) => { setConstituencyInitialTab("summary"); setSelectedConstituency(c); }}
               />
             )}
           </div>
@@ -77,24 +93,29 @@ function AppShell() {
           </div>
           <div className={`panel ${navPanel === "favourites" ? "active" : ""}`}>
             {navPanel === "favourites" && (
-              <FavouritesPanel onSelectConstituency={setSelectedConstituency} />
+              <FavouritesPanel onSelectConstituency={(c) => { setConstituencyInitialTab("summary"); setSelectedConstituency(c); }} />
             )}
           </div>
           <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
-            {navPanel === "regions" && <RegionsPanel electionType={electionType} />}
+            {navPanel === "regions" && (
+              <RegionsPanel electionType={electionType} regionFocus={regionFocus} onSelectConstituency={handleSelectConstituencyFromMap} />
+            )}
           </div>
           <div className={`panel ${navPanel === "ghana" ? "active" : ""}`}>
-            {navPanel === "ghana" && <GhanaPanel />}
+            {navPanel === "ghana" && (
+              <GhanaPanel onNavigateToRegion={(region) => { setRegionFocus(region); setNavPanel("regions"); }} />
+            )}
           </div>
         </div>
 
-        <BottomNav active={navPanel} onChange={setNavPanel} />
+        <BottomNav active={navPanel} onChange={handleNavChange} />
       </div>
 
       {selectedConstituency && (
         <ConstituencyDrilldown
           constituency={selectedConstituency}
           electionType={electionType}
+          initialTab={constituencyInitialTab}
           onClose={() => setSelectedConstituency(null)}
         />
       )}

@@ -26,14 +26,24 @@ interface TrendResponse {
   trend: { NDC: { colourHex: string | null; points: TrendPoint[] }; NPP: { colourHex: string | null; points: TrendPoint[] }; Others: { colourHex: string | null; points: TrendPoint[] } };
 }
 
-// Combined map + trend dashboard. Map on the left (25% width), chart on the
-// right (75%) — the map is a real filter for the chart, not a decoration
-// beside it: tapping a region or constituency changes what the chart shows,
-// fetched fresh from /map-dashboard/trend for that scope. This is the real,
-// database-backed version of the standalone prototype — boundaries and
-// trend data both come from the API now (ConstituencyBoundary,
-// RegionalResult, NationalResult), not embedded static JSON.
-export default function MapTrendDashboard() {
+interface MapExplorerProps {
+  // "full": Ghana tab — all 16 regions, drills to constituencies within a
+  //   region, then a "Reveal All 276" button. Tapping a region calls
+  //   onNavigateToRegion instead of drilling in-place, so the host page can
+  //   switch the bottom-nav tab to Regions.
+  // "region-locked": Regions tab, focused on one specific region — shows
+  //   only that region's constituencies, no region-level view or back button.
+  // "constituency-isolated": Hist. Trend tab — one single constituency's
+  //   shape only, no drill interaction, chart locked to that constituency.
+  mode: "full" | "region-locked" | "constituency-isolated";
+  regionName?: string; // required for region-locked
+  constituencyId?: string; // required for constituency-isolated
+  constituencyName?: string;
+  onNavigateToRegion?: (regionName: string) => void;
+  onSelectConstituency?: (id: string, name: string, region: string | null) => void;
+}
+
+export default function MapExplorer({ mode, regionName, constituencyId, constituencyName, onNavigateToRegion, onSelectConstituency }: MapExplorerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.GeoJSON | null>(null);
@@ -41,45 +51,44 @@ export default function MapTrendDashboard() {
   const [regionsGeoJSON, setRegionsGeoJSON] = useState<any>(null);
   const [constituenciesGeoJSON, setConstituenciesGeoJSON] = useState<any>(null);
   const [regionIdByShortName, setRegionIdByShortName] = useState<Map<string, string>>(new Map());
-  const [mapState, setMapState] = useState<"regions" | "region-filtered" | "all-constituencies">("regions");
-  const [currentRegionName, setCurrentRegionName] = useState<string | null>(null);
+  const [mapState, setMapState] = useState<"regions" | "region-filtered" | "all-constituencies">(
+    mode === "full" ? "regions" : "region-filtered"
+  );
 
-  const [scope, setScope] = useState<Scope>({ type: "national" });
+  const [scope, setScope] = useState<Scope>(
+    mode === "constituency-isolated" && constituencyId
+      ? { type: "constituency", id: constituencyId, name: constituencyName ?? "", region: regionName ?? null }
+      : mode === "region-locked" && regionName
+      ? { type: "region", id: "", name: regionName } // id filled in once regions list loads
+      : { type: "national" }
+  );
   const [trendData, setTrendData] = useState<TrendResponse | null>(null);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
 
-  // Initial data load: static region boundary file (served from /public —
-  // there's no live geometry-union capability in the Node backend, so this
-  // stays a pre-computed file, same as the standalone prototype used),
-  // constituency boundaries from the new API endpoint, and the region
-  // id/shortName lookup needed to call /trend?scope=region&id=<realId>.
   useEffect(() => {
-    // Sequenced, not concurrent — the Supabase pool here is capped at 5
-    // connections, and firing several requests at once (each doing its own
-    // internal queries) was contributing to real P2024 pool-timeout errors
-    // observed in testing. The static GeoJSON fetch doesn't touch the DB at
-    // all, so it can run independently; the two API calls run one after
-    // the other.
-    fetch("/ghana-regions-16.geojson").then((r) => r.json()).then(setRegionsGeoJSON);
+    if (mode === "full") fetch("/ghana-regions-16.geojson").then((r) => r.json()).then(setRegionsGeoJSON);
     (async () => {
       const boundaries = await api.mapConstituencyBoundaries();
       setConstituenciesGeoJSON(boundaries);
       const regions = await api.mapRegions();
-      setRegionIdByShortName(new Map(regions.map((r: any) => [r.shortName, r.id])));
+      const map = new Map(regions.map((r: any) => [r.shortName, r.id]));
+      setRegionIdByShortName(map);
+      if (mode === "region-locked" && regionName) {
+        const id = map.get(regionName);
+        if (id) setScope({ type: "region", id, name: regionName });
+      }
     })();
   }, []);
 
-  // Fetch trend data whenever scope changes
   useEffect(() => {
     setSelectedYear(null);
     const params = scope.type === "national" ? "scope=national" : `scope=${scope.type}&id=${scope.id}`;
-    api.mapTrend(params).then(setTrendData);
+    if (scope.type !== "region" || scope.id) api.mapTrend(params).then(setTrendData);
   }, [scope]);
 
-  // Map init (once)
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-    const map = L.map(mapContainerRef.current, { zoomControl: true, maxBounds: GHANA_BOUNDS, maxBoundsViscosity: 0.9, minZoom: 6 }).fitBounds(GHANA_BOUNDS);
+    const map = L.map(mapContainerRef.current, { zoomControl: mode !== "constituency-isolated", dragging: mode !== "constituency-isolated", scrollWheelZoom: mode !== "constituency-isolated", maxBounds: mode === "constituency-isolated" ? undefined : GHANA_BOUNDS, maxBoundsViscosity: 0.9, minZoom: mode === "constituency-isolated" ? undefined : 6 });
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap © CARTO", maxZoom: 12 }).addTo(map);
     mapRef.current = map;
     return () => { map.remove(); mapRef.current = null; };
@@ -94,13 +103,12 @@ export default function MapTrendDashboard() {
     return { fillColor: party ? (PARTY_COLOUR[party] || "#888") : "#666", weight: 1, opacity: 1, color: "#0d1b30", fillOpacity: party ? 0.65 : 0.3, dashArray: party ? undefined : "4,3" };
   }
   const hiStyle = () => ({ weight: 3, color: "#f2c94c", fillOpacity: 0.8 });
-
   function clearLayer() { if (layerRef.current && mapRef.current) { mapRef.current.removeLayer(layerRef.current); layerRef.current = null; } }
 
   function showRegions() {
     if (!mapRef.current || !regionsGeoJSON) return;
     clearLayer();
-    setMapState("regions"); setCurrentRegionName(null);
+    setMapState("regions");
     setScope({ type: "national" });
     const layer = L.geoJSON(regionsGeoJSON, {
       style: regionStyle,
@@ -109,11 +117,7 @@ export default function MapTrendDashboard() {
         lyr.on({
           mouseover: (e) => (e.target as L.Path).setStyle(hiStyle()),
           mouseout: (e) => layerRef.current?.resetStyle(e.target),
-          click: (e) => {
-            const regionId = regionIdByShortName.get(feature.properties.region);
-            if (regionId) setScope({ type: "region", id: regionId, name: feature.properties.region });
-            drillIntoRegion(feature.properties.region, (e.target as L.Polygon).getBounds());
-          },
+          click: () => onNavigateToRegion?.(feature.properties.region),
         });
       },
     }).addTo(mapRef.current);
@@ -121,11 +125,11 @@ export default function MapTrendDashboard() {
     mapRef.current.fitBounds(GHANA_BOUNDS);
   }
 
-  function drillIntoRegion(regionName: string, bounds: L.LatLngBounds) {
+  function showRegionFiltered(targetRegion: string, fitToBounds: boolean) {
     if (!mapRef.current || !constituenciesGeoJSON) return;
     clearLayer();
-    setMapState("region-filtered"); setCurrentRegionName(regionName);
-    const filtered = { type: "FeatureCollection", features: constituenciesGeoJSON.features.filter((f: any) => f.properties.region === regionName) };
+    setMapState("region-filtered");
+    const filtered = { type: "FeatureCollection", features: constituenciesGeoJSON.features.filter((f: any) => f.properties.region === targetRegion) };
     const layer = L.geoJSON(filtered as any, {
       style: constStyle,
       onEachFeature: (feature, lyr) => {
@@ -133,12 +137,15 @@ export default function MapTrendDashboard() {
         lyr.on({
           mouseover: (e) => (e.target as L.Path).setStyle(hiStyle()),
           mouseout: (e) => layerRef.current?.resetStyle(e.target),
-          click: () => setScope({ type: "constituency", id: feature.properties.constituencyId, name: feature.properties.name, region: feature.properties.region }),
+          click: () => {
+            if (mode === "full") { onSelectConstituency?.(feature.properties.constituencyId, feature.properties.name, feature.properties.region); return; }
+            setScope({ type: "constituency", id: feature.properties.constituencyId, name: feature.properties.name, region: feature.properties.region });
+          },
         });
       },
     }).addTo(mapRef.current);
     layerRef.current = layer;
-    mapRef.current.fitBounds(bounds, { padding: [16, 16] });
+    if (fitToBounds) mapRef.current.fitBounds((layer as any).getBounds(), { padding: [16, 16] });
   }
 
   function showAllConstituencies() {
@@ -161,62 +168,60 @@ export default function MapTrendDashboard() {
     mapRef.current.fitBounds(GHANA_BOUNDS);
   }
 
+  function showIsolatedConstituency() {
+    if (!mapRef.current || !constituenciesGeoJSON || !constituencyId) return;
+    clearLayer();
+    const feature = constituenciesGeoJSON.features.find((f: any) => f.properties.constituencyId === constituencyId);
+    if (!feature) return;
+    const layer = L.geoJSON(feature, { style: constStyle }).addTo(mapRef.current);
+    layerRef.current = layer;
+    mapRef.current.fitBounds((layer as any).getBounds(), { padding: [8, 8] });
+  }
+
+  const ready = mode === "full" ? regionsGeoJSON && constituenciesGeoJSON && regionIdByShortName.size > 0 : constituenciesGeoJSON;
   useEffect(() => {
-    // All three pieces of data feed into the click handlers built inside
-    // showRegions() (constituenciesGeoJSON and regionIdByShortName via
-    // closure, not just regionsGeoJSON via props) — if the layer gets
-    // built before the other two are ready, every click handler is
-    // permanently frozen holding null/empty values from that instant,
-    // since Leaflet's imperative event bindings don't get any of React's
-    // usual re-render freshness. That was the actual cause of clicks
-    // silently doing nothing: the layer was built as soon as the static
-    // region file loaded, well before the two sequenced API calls behind
-    // it had finished.
-    const ready = regionsGeoJSON && constituenciesGeoJSON && regionIdByShortName.size > 0 && mapRef.current;
-    if (ready && mapState === "regions" && !layerRef.current) showRegions();
-  }, [regionsGeoJSON, constituenciesGeoJSON, regionIdByShortName]);
+    if (!ready || !mapRef.current || layerRef.current) return;
+    if (mode === "full") showRegions();
+    else if (mode === "region-locked" && regionName) showRegionFiltered(regionName, true);
+    else if (mode === "constituency-isolated") showIsolatedConstituency();
+  }, [ready]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", minHeight: "70vh" }} className="map-trend-dashboard">
-      <div style={{ width: "25%", minWidth: 260, borderRight: "1px solid var(--line)", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px 10px", background: "var(--panel)", borderBottom: "1px solid var(--line)" }}>
-          {mapState === "regions" && <span style={{ fontSize: 12, color: "var(--muted)" }}>16 Regions</span>}
-          {mapState === "region-filtered" && (
-            <>
-              <button onClick={showRegions} style={crumbBtnStyle}>← All Regions</button>
-              <span style={{ fontSize: 12, color: "var(--muted)" }}>{currentRegionName}</span>
-              <button onClick={showAllConstituencies} style={{ ...crumbBtnStyle, background: "var(--gold-deep)", borderColor: "var(--gold-deep)", color: "var(--navy-deep)", fontWeight: 700 }}>Reveal All 276</button>
-            </>
-          )}
-          {mapState === "all-constituencies" && (
-            <>
-              <button onClick={showRegions} style={crumbBtnStyle}>← All Regions</button>
-              <span style={{ fontSize: 12, color: "var(--muted)" }}>All 276 Constituencies</span>
-            </>
-          )}
-        </div>
-        <div ref={mapContainerRef} style={{ flex: 1, minHeight: 320 }} />
+    <div className="map-explorer">
+      <div className="map-explorer-map-col">
+        {mode === "full" && (
+          <div className="map-explorer-crumb-bar">
+            {mapState === "regions" && <span className="map-explorer-crumb-label">16 Regions</span>}
+            {mapState === "all-constituencies" && (
+              <>
+                <button className="map-explorer-crumb-btn" onClick={showRegions}>← All Regions</button>
+                <span className="map-explorer-crumb-label">All 276 Constituencies</span>
+              </>
+            )}
+          </div>
+        )}
+        <div ref={mapContainerRef} className={mode === "constituency-isolated" ? "const-isolated-map" : "map-explorer-canvas"} />
+        {mode === "full" && mapState === "regions" && (
+          <div style={{ padding: 10 }}>
+            <button className="map-explorer-crumb-btn primary" onClick={showAllConstituencies} style={{ width: "100%" }}>Reveal All 276 Constituencies</button>
+          </div>
+        )}
       </div>
-      <div style={{ width: "75%", padding: 16, display: "flex", flexDirection: "column" }}>
-        <div style={{ fontSize: 15, color: "var(--gold-bright)", fontWeight: 700 }}>
-          {scope.type === "national" ? "National" : scope.type === "region" ? `${scope.name} Region` : scope.name}
+      {mode !== "constituency-isolated" && (
+        <div className="map-explorer-chart-col">
+          <div className="map-explorer-scope-label">
+            {scope.type === "national" ? "National" : scope.type === "region" ? `${scope.name} Region` : scope.name}
+          </div>
+          <div className="map-explorer-scope-sub">
+            {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · Presidential results, 1996–2024`}
+          </div>
+          {trendData && <TrendChart data={trendData} selectedYear={selectedYear} onSelectYear={setSelectedYear} />}
         </div>
-        <div style={{ fontSize: 11.5, color: "var(--muted)", marginBottom: 10 }}>
-          {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · Presidential results, 1996–2024`}
-        </div>
-        {trendData && <TrendChart data={trendData} selectedYear={selectedYear} onSelectYear={setSelectedYear} />}
-      </div>
+      )}
     </div>
   );
 }
 
-const crumbBtnStyle: CSSProperties = { background: "var(--navy-deep)", border: "1px solid var(--line)", color: "var(--cream)", padding: "6px 10px", borderRadius: 5, fontSize: 11, fontFamily: "inherit", cursor: "pointer", textAlign: "left" };
-
-// Same chart/tooltip design already established and iterated on for the
-// single-constituency Hist. Trend tab — reused directly, generalized to
-// accept any scope's history/trend shape (identical response format from
-// the backend either way, so no branching needed here beyond what the API
-// already resolved).
 function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse; selectedYear: string | null; onSelectYear: (c: string | null) => void }) {
   const W = 600, H = 300, PAD_L = 40, PAD_R = 14, PAD_T = 16, PAD_B = 26;
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
@@ -253,12 +258,12 @@ function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse;
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", touchAction: "manipulation" }}>
           {gridLines.map((pct) => (
             <g key={pct}>
-              <line x1={PAD_L} x2={W - PAD_R} y1={yPos(pct)} y2={yPos(pct)} stroke="var(--line)" strokeWidth={0.5} opacity={0.5} />
+              <line x1={PAD_L} x2={W - PAD_R} y1={yPos(pct)} y2={yPos(pct)} stroke="var(--border)" strokeWidth={0.5} opacity={0.5} />
               <text x={PAD_L - 6} y={yPos(pct) + 3} textAnchor="end" fontSize={10} fill="var(--muted)">{Math.round(pct)}%</text>
             </g>
           ))}
           {allYears.map((y) => (
-            <text key={y} x={xPos(y)} y={H - 8} textAnchor="middle" fontSize={10} fill={selectedPoint?.year === y ? "var(--gold-bright)" : "var(--muted)"} fontWeight={selectedPoint?.year === y ? 700 : 400}>{y}</text>
+            <text key={y} x={xPos(y)} y={H - 8} textAnchor="middle" fontSize={10} fill={selectedPoint?.year === y ? "var(--gold)" : "var(--muted)"} fontWeight={selectedPoint?.year === y ? 700 : 400}>{y}</text>
           ))}
           {series.map(({ key, s, colour }) => {
             if (s.points.length === 0) return null;

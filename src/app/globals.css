@@ -1030,3 +1030,39 @@
   .account-panel-email { font-size: 15px; }
   .account-panel-signout { font-size: 15px; padding: 12px; }
 }
+
+/* Map + trend dashboard — mobile-first: map and chart stack vertically by
+   default (map first, full width, real height so it's actually usable —
+   not squeezed into a fixed-percentage sliver), side-by-side only from
+   tablet width up. This was previously inline styles with a single fixed
+   25%/75% flex split and no breakpoint at all, which on a phone squeezed
+   the map into ~90px — unusably small and effectively non-interactive. */
+.map-explorer { display: flex; flex-direction: column; min-height: 60vh; }
+.map-explorer-map-col { width: 100%; display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
+.map-explorer-crumb-bar { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.map-explorer-crumb-btn {
+  background: var(--bg); border: 1px solid var(--border); color: var(--white);
+  padding: 7px 12px; border-radius: 5px; font-size: 12px; font-family: 'Rajdhani', sans-serif;
+  cursor: pointer; text-align: left;
+}
+.map-explorer-crumb-btn.primary { background: var(--gold-dim); border-color: var(--gold-dim); color: var(--bg); font-weight: 700; }
+.map-explorer-crumb-label { font-size: 12px; color: var(--muted); }
+.map-explorer-canvas { width: 100%; flex: 1; min-height: 280px; }
+.map-explorer-chart-col { width: 100%; padding: 14px; display: flex; flex-direction: column; }
+.map-explorer-scope-label { font-size: 15px; color: var(--gold); font-weight: 700; }
+.map-explorer-scope-sub { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+
+/* Isolated single-constituency map on the Hist. Trend tab */
+.const-isolated-map { width: 100%; height: 160px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; border: 1px solid var(--border); }
+
+@media (min-width: 768px) {
+  .map-explorer { flex-direction: row; min-height: 70vh; }
+  .map-explorer-map-col { width: 30%; min-width: 240px; border-bottom: none; border-right: 1px solid var(--border); }
+  .map-explorer-chart-col { width: 70%; }
+  .const-isolated-map { height: 200px; }
+}
+@media (min-width: 1200px) {
+  .map-explorer-map-col { width: 25%; }
+  .map-explorer-chart-col { width: 75%; }
+}
+

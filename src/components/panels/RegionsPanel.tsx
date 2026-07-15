@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { api, type Region, type RegionResults } from "@/lib/api";
 import { currentElectionCodeFor } from "@/lib/results";
 import GhanaFlag from "../GhanaFlag";
+
+const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
 
 const FALLBACK_COLOUR = "#5C6E8A";
 const OTHER_COLOUR = "#94A3B8";
@@ -12,7 +15,18 @@ interface RegionCardData {
   data: RegionResults | null;
 }
 
-export default function RegionsPanel({ electionType }: { electionType: "presidential" | "parliamentary" }) {
+// regionFocus is set when the user arrived here by tapping a region on the
+// Ghana tab's national map — in that case, show only that region's
+// constituency map + trend, not the full 16-region card list. Direct
+// bottom-nav navigation to Regions (regionFocus null) keeps the existing
+// card-list behaviour unchanged.
+export default function RegionsPanel({
+  electionType, regionFocus, onSelectConstituency,
+}: {
+  electionType: "presidential" | "parliamentary";
+  regionFocus: string | null;
+  onSelectConstituency: (id: string, name: string, region: string | null) => void;
+}) {
   const [cards, setCards] = useState<RegionCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -35,6 +49,17 @@ export default function RegionsPanel({ electionType }: { electionType: "presiden
 
     return () => { cancelled = true; };
   }, [electionType]);
+
+  if (regionFocus) {
+    return (
+      <div>
+        <div className="ghana-status-bar">
+          <span className="ghana-panel-title">{regionFocus.toUpperCase()}</span>
+        </div>
+        <MapExplorer mode="region-locked" regionName={regionFocus} onSelectConstituency={onSelectConstituency} />
+      </div>
+    );
+  }
 
   if (loading) return <div className="tap-hint">Loading regions...</div>;
 
