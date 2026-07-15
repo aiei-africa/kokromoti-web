@@ -83,7 +83,12 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
   useEffect(() => {
     setSelectedYear(null);
     const params = scope.type === "national" ? "scope=national" : `scope=${scope.type}&id=${scope.id}`;
-    if (scope.type !== "region" || scope.id) api.mapTrend(params).then(setTrendData);
+    setTrendData(null);
+    if (scope.type !== "region" || scope.id) {
+      api.mapTrend(params)
+        .then((data) => setTrendData(data && data.trend ? data : null))
+        .catch(() => setTrendData(null));
+    }
   }, [scope]);
 
   useEffect(() => {
@@ -223,6 +228,15 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
 }
 
 function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse; selectedYear: string | null; onSelectYear: (c: string | null) => void }) {
+  // Second, independent guard — the caller already checks trendData is
+  // present before rendering this at all, but a response that came back
+  // 200 OK with an unexpected shape (missing/null `trend` specifically)
+  // would still reach here and crash on data.trend.NDC otherwise. This is
+  // exactly the failure that hit production: an outer truthy check isn't
+  // enough if the object's own required fields aren't actually there.
+  if (!data || !data.trend || !data.history) {
+    return <div style={{ color: "var(--muted)", padding: 40, textAlign: "center" }}>Trend data unavailable right now.</div>;
+  }
   const W = 600, H = 300, PAD_L = 40, PAD_R = 14, PAD_T = 16, PAD_B = 26;
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
   const series = [
