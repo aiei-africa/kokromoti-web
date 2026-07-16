@@ -711,6 +711,10 @@
     margin: 0 auto;
     box-shadow: 0 0 40px rgba(0,0,0,0.3);
   }
+  /* Wide variant — Ghana/Regions tabs only (map + trend chart), applied
+     conditionally in page.tsx. Every other tab keeps the standard
+     .app-shell width untouched. */
+  .app-shell--wide { max-width: min(1400px, 96vw); }
 
   /* Top bar / branding */
   .logo-text { font-size: 28px; }
@@ -761,6 +765,10 @@
      jumps as the main app's classes: percentages/vote-counts get the
      biggest increase, labels/badges smaller. ── */
   .dd-shell { max-width: 960px; margin: 0 auto; }
+  /* Wide variant — Hist. Trend tab only (isolated map + trend chart),
+     applied conditionally in ConstituencyDrilldown.tsx. Summary/Stations/
+     Facts/News tabs keep the standard .dd-shell width untouched. */
+  .dd-shell--wide { max-width: min(1400px, 96vw); }
   .dd-const-name { font-size: 24px; }
   .dd-region-name { font-size: 14px; }
   .dd-tab { font-size: 13px; padding: 11px 14px; }
@@ -834,6 +842,7 @@
     max-width: 1300px;
     box-shadow: 0 0 80px rgba(0,0,0,0.4);
   }
+  .app-shell--wide { max-width: min(1800px, 96vw); }
 
   /* Top bar / branding — genuine 10-foot-UI scale, matching how TV apps
      (Netflix, YouTube TV) actually size body text: 24-32px minimum, not
@@ -879,6 +888,7 @@
   /* ── Constituency drilldown (dd-*) — genuine 10-foot-UI scale, matching
      the same treatment given to the main app's classes at this tier. ── */
   .dd-shell { max-width: 1300px; }
+  .dd-shell--wide { max-width: min(1800px, 96vw); }
   .dd-const-name { font-size: 36px; }
   .dd-region-name { font-size: 19px; }
   .dd-tab { font-size: 17px; padding: 16px 20px; }

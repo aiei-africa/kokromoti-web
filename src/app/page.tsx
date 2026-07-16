@@ -44,7 +44,7 @@ function AppShell() {
     <>
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
 
-      <div className="app-shell">
+      <div className={`app-shell${navPanel === "ghana" || navPanel === "regions" ? " app-shell--wide" : ""}`}>
         <HeaderStack>
           <TopBar
             electionType={electionType}

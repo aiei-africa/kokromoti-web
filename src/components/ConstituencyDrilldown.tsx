@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { api, type ConstituencyFullResult, type ArchiveStation, type ConstituencyHistory, type CandidateResult } from "@/lib/api";
 import { currentElectionCodeFor } from "@/lib/results";
@@ -48,6 +48,13 @@ type TrendSeries = { colourHex: string | null; points: TrendPoint[] };
 // different point moves it there.
 function HistoryTrendChart({ history, trend, allYears }: { history: ConstituencyHistory["history"]; trend: ConstituencyHistory["trend"]; allYears: number[] }) {
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  // Hover previews a point's tooltip on desktop (mouse only — touch devices
+  // don't fire mouseenter/mouseleave reliably, so mobile tap-to-pin below
+  // is unaffected). A pinned point (selectedCode, set by clicking) takes
+  // priority over hover, so hovering elsewhere never disturbs a pin.
+  const [hoveredCode, setHoveredCode] = useState<string | null>(null);
+  const activeCode = selectedCode ?? hoveredCode;
+  const chartRef = useRef<HTMLDivElement>(null);
   const W = 600, H = 220, PAD_L = 34, PAD_R = 12, PAD_T = 14, PAD_B = 24;
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
 
@@ -85,12 +92,27 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
   const yPos = (pct: number) => PAD_T + plotH - ((pct - yMin) / yRange) * plotH;
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map((f) => yMin + f * yRange);
 
-  const selectedEntry = selectedCode ? history.find((h) => h.electionCode === selectedCode) : null;
-  const selectedPoint = selectedCode ? series.flatMap((s) => s.s.points).find((p) => p.electionCode === selectedCode) : null;
+  const selectedEntry = activeCode ? history.find((h) => h.electionCode === activeCode) : null;
+  const selectedPoint = activeCode ? series.flatMap((s) => s.s.points).find((p) => p.electionCode === activeCode) : null;
 
   function handleTap(code: string) {
     setSelectedCode((prev) => (prev === code ? null : code));
   }
+
+  // Clicking anywhere outside the chart/tooltip dismisses a pinned point.
+  // mousedown (not click) is used so it never races with a point's own
+  // onClick — clicking a different point stays inside chartRef, so this
+  // never interferes with switching the pin from one point to another.
+  useEffect(() => {
+    if (!selectedCode) return;
+    function handleOutside(e: MouseEvent) {
+      if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
+        setSelectedCode(null);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [selectedCode]);
 
   // Tooltip position — computed in the same 0-600/0-220 coordinate space as
   // the chart, then expressed as percentages so it aligns with the SVG's
@@ -115,7 +137,7 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
 
   return (
     <div style={{ padding: "12px 16px 4px" }}>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} ref={chartRef}>
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", touchAction: "manipulation" }}>
         {gridLines.map((pct) => (
           <g key={pct}>
@@ -135,9 +157,15 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
             <g key={key}>
               <path d={path} fill="none" stroke={colour} strokeWidth={2} opacity={0.9} />
               {sorted.map((p) => {
-                const isSelected = p.electionCode === selectedCode;
+                const isSelected = p.electionCode === activeCode;
                 return (
-                  <g key={p.electionCode} onClick={() => handleTap(p.electionCode)} style={{ cursor: "pointer" }}>
+                  <g
+                    key={p.electionCode}
+                    onClick={() => handleTap(p.electionCode)}
+                    onMouseEnter={() => setHoveredCode(p.electionCode)}
+                    onMouseLeave={() => setHoveredCode((prev) => (prev === p.electionCode ? null : prev))}
+                    style={{ cursor: "pointer" }}
+                  >
                     {/* invisible, larger touch target — the visible dot alone is too small to tap reliably on mobile */}
                     <circle cx={xPos(p.year)} cy={yPos(p.votePct)} r={14} fill="transparent" />
                     <circle
@@ -270,7 +298,7 @@ export default function ConstituencyDrilldown({
 
   return (
     <div className="drilldown-overlay open">
-      <div className="dd-shell">
+      <div className={`dd-shell${tab === "history" ? " dd-shell--wide" : ""}`}>
       <div className="dd-topbar">
         <div className="dd-top-row">
           <button className="dd-back" onClick={onClose}>←</button>
