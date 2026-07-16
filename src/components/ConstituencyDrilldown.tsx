@@ -51,6 +51,21 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
   const W = 600, H = 220, PAD_L = 34, PAD_R = 12, PAD_T = 14, PAD_B = 24;
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
 
+  // Guard: `history` being truthy at the call site does not guarantee
+  // `history.trend` is fully populated — constituencies with no computable
+  // trend (e.g. Ablekuma North's 2024 presidential row, whose vote fields
+  // are genuinely null) return a history array with an absent/incomplete
+  // trend object. MapExplorer.tsx already guards this exact shape;
+  // HistoryTrendChart did not, causing the real production crash:
+  // "Cannot read properties of undefined (reading 'NDC')".
+  if (!trend || !trend.NDC || !trend.NPP || !trend.Others) {
+    return (
+      <div className="tap-hint" style={{ padding: 24 }}>
+        No historical trend data available for this constituency.
+      </div>
+    );
+  }
+
   const series: { key: "NDC" | "NPP" | "Others"; s: TrendSeries; colour: string }[] = [
     { key: "NDC", s: trend.NDC, colour: trend.NDC.colourHex || "#2e7d4f" },
     { key: "NPP", s: trend.NPP, colour: trend.NPP.colourHex || "#163488" },
