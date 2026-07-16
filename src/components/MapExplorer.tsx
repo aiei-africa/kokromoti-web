@@ -7,7 +7,11 @@ import { api } from "@/lib/api";
 const FALLBACK_COLOUR = "#5C6E8A";
 const PARTY_COLOUR: Record<string, string> = { NDC: "#1B6B3A", NPP: "#003082" };
 const YEARS = ["1996", "2000", "2004", "2008", "2012", "2016", "2020", "2024"];
-const GHANA_BOUNDS = L.latLngBounds([4.3, -3.6], [11.5, 1.5]);
+// Rough fallback only, used for the very first map creation before real
+// geometry has loaded. Every actual view (national/region/constituency)
+// replaces this with bounds computed from real GeoJSON the moment its
+// layer is shown — see lockToBounds().
+const FALLBACK_BOUNDS = L.latLngBounds([4.3, -3.6], [11.5, 1.5]);
 
 type Scope =
   | { type: "national" }
@@ -43,10 +47,31 @@ interface MapExplorerProps {
   onSelectConstituency?: (id: string, name: string, region: string | null) => void;
 }
 
+// Locks the map to a real layer's own geometry (not a hand-typed
+// rectangle): pads the bounds slightly for maxBounds so there's a touch
+// of breathing room without leaking into neighbouring territory, and sets
+// minZoom to the exact zoom level that fits those bounds, so the map can
+// never be zoomed out past the edge of whatever is actually being shown.
+// Applied at every scope — national, region-locked, and
+// constituency-isolated — using each view's own real bounds, not a shared
+// national box, which was the root cause of region/constituency views
+// still being able to pan into neighbouring regions or countries.
+function lockToBounds(map: L.Map, bounds: L.LatLngBounds) {
+  if (!bounds.isValid()) return;
+  const padded = bounds.pad(0.06);
+  map.setMaxBounds(padded);
+  const fitZoom = map.getBoundsZoom(bounds, false);
+  map.setMinZoom(fitZoom);
+}
+
 export default function MapExplorer({ mode, regionName, constituencyId, constituencyName, onNavigateToRegion, onSelectConstituency }: MapExplorerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.GeoJSON | null>(null);
+  // Real national bounds, computed once from the actual constituency
+  // geometry the moment it loads — replaces the old hand-typed rectangle
+  // for every national-scope fitBounds/lockToBounds call.
+  const nationalBoundsRef = useRef<L.LatLngBounds | null>(null);
 
   const [regionsGeoJSON, setRegionsGeoJSON] = useState<any>(null);
   const [constituenciesGeoJSON, setConstituenciesGeoJSON] = useState<any>(null);
@@ -70,6 +95,7 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     (async () => {
       const boundaries = await api.mapConstituencyBoundaries();
       setConstituenciesGeoJSON(boundaries);
+      nationalBoundsRef.current = L.geoJSON(boundaries as any).getBounds();
       const regions = await api.mapRegions();
       const map = new Map(regions.map((r: any) => [r.shortName, r.id]));
       setRegionIdByShortName(map);
@@ -93,7 +119,7 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-    const map = L.map(mapContainerRef.current, { zoomControl: mode !== "constituency-isolated", dragging: mode !== "constituency-isolated", scrollWheelZoom: mode !== "constituency-isolated", maxBounds: mode === "constituency-isolated" ? undefined : GHANA_BOUNDS, maxBoundsViscosity: 0.9, minZoom: mode === "constituency-isolated" ? undefined : 6 });
+    const map = L.map(mapContainerRef.current, { zoomControl: mode !== "constituency-isolated", dragging: mode !== "constituency-isolated", scrollWheelZoom: mode !== "constituency-isolated", maxBounds: FALLBACK_BOUNDS, maxBoundsViscosity: 0.9, minZoom: mode === "constituency-isolated" ? undefined : 6 });
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap © CARTO", maxZoom: 12 }).addTo(map);
     mapRef.current = map;
     return () => { map.remove(); mapRef.current = null; };
@@ -127,7 +153,9 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
       },
     }).addTo(mapRef.current);
     layerRef.current = layer;
-    mapRef.current.fitBounds(GHANA_BOUNDS);
+    const bounds = nationalBoundsRef.current ?? (layer as any).getBounds();
+    mapRef.current.fitBounds(bounds);
+    lockToBounds(mapRef.current, bounds);
   }
 
   function showRegionFiltered(targetRegion: string, fitToBounds: boolean) {
@@ -161,7 +189,12 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
       },
     }).addTo(mapRef.current);
     layerRef.current = layer;
-    if (fitToBounds) mapRef.current.fitBounds((layer as any).getBounds(), { padding: [16, 16] });
+    const bounds = (layer as any).getBounds();
+    if (fitToBounds) mapRef.current.fitBounds(bounds, { padding: [16, 16] });
+    // Region-locked scope: bounds now come from THIS region's own layer,
+    // not the national box — this is what stops the map panning out into
+    // neighbouring regions/countries while a region is focused.
+    lockToBounds(mapRef.current, bounds);
   }
 
   function showAllConstituencies() {
@@ -181,7 +214,9 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
       },
     }).addTo(mapRef.current);
     layerRef.current = layer;
-    mapRef.current.fitBounds(GHANA_BOUNDS);
+    const bounds = nationalBoundsRef.current ?? (layer as any).getBounds();
+    mapRef.current.fitBounds(bounds);
+    lockToBounds(mapRef.current, bounds);
   }
 
   function showIsolatedConstituency() {
@@ -191,7 +226,12 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     if (!feature) return;
     const layer = L.geoJSON(feature, { style: constStyle }).addTo(mapRef.current);
     layerRef.current = layer;
-    mapRef.current.fitBounds((layer as any).getBounds(), { padding: [8, 8] });
+    const bounds = (layer as any).getBounds();
+    mapRef.current.fitBounds(bounds, { padding: [8, 8] });
+    // Non-interactive here (dragging/zoom/scroll already disabled for this
+    // mode), but locked to real bounds regardless so this stays correct
+    // if interaction is ever enabled for this mode later.
+    lockToBounds(mapRef.current, bounds);
   }
 
   const ready = mode === "full" ? regionsGeoJSON && constituenciesGeoJSON && regionIdByShortName.size > 0 : constituenciesGeoJSON;
@@ -223,17 +263,19 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
           </div>
         )}
       </div>
-      {mode !== "constituency-isolated" && (
-        <div className="map-explorer-chart-col">
-          <div className="map-explorer-scope-label">
-            {scope.type === "national" ? "National" : scope.type === "region" ? `${scope.name} Region` : scope.name}
-          </div>
-          <div className="map-explorer-scope-sub">
-            {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · Presidential results, 1996–2024`}
-          </div>
-          {trendData && <TrendChart data={trendData} selectedYear={selectedYear} onSelectYear={setSelectedYear} />}
+      {/* Chart column now renders for every mode, including
+          constituency-isolated — previously suppressed here, which was
+          the reason the isolated view's chart rendered as a separate
+          stacked block elsewhere instead of side-by-side with its map. */}
+      <div className="map-explorer-chart-col">
+        <div className="map-explorer-scope-label">
+          {scope.type === "national" ? "National" : scope.type === "region" ? `${scope.name} Region` : scope.name}
         </div>
-      )}
+        <div className="map-explorer-scope-sub">
+          {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · Presidential results, 1996–2024`}
+        </div>
+        {trendData ? <TrendChart data={trendData} selectedYear={selectedYear} onSelectYear={setSelectedYear} /> : <div style={{ color: "var(--muted)", padding: 40, textAlign: "center" }}>Loading trend…</div>}
+      </div>
     </div>
   );
 }
@@ -248,6 +290,25 @@ function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse;
   if (!data || !data.trend || !data.history) {
     return <div style={{ color: "var(--muted)", padding: 40, textAlign: "center" }}>Trend data unavailable right now.</div>;
   }
+  // Hover previews a point on desktop (mouse only); a pinned point
+  // (selectedYear, set via click, controlled by the parent) takes
+  // priority over hover, so hovering elsewhere never disturbs a pin.
+  // Same pattern as the constituency drilldown's HistoryTrendChart.
+  const [hoveredCode, setHoveredCode] = useState<string | null>(null);
+  const activeCode = selectedYear ?? hoveredCode;
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedYear) return;
+    function handleOutside(e: MouseEvent) {
+      if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
+        onSelectYear(null);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [selectedYear, onSelectYear]);
+
   const W = 600, H = 300, PAD_L = 40, PAD_R = 14, PAD_T = 16, PAD_B = 26;
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
   const series = [
@@ -265,8 +326,8 @@ function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse;
   const xPos = (y: number) => PAD_L + ((y - xMin) / (xMax - xMin || 1)) * plotW;
   const yPos = (p: number) => PAD_T + plotH - ((p - yMin) / yRange) * plotH;
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map((f) => yMin + f * yRange);
-  const selectedPoint = selectedYear ? series.flatMap((s) => s.s.points).find((p) => p.electionCode === selectedYear) : null;
-  const selectedEntry = selectedYear ? data.history.find((h) => h.electionCode === selectedYear) : null;
+  const selectedPoint = activeCode ? series.flatMap((s) => s.s.points).find((p) => p.electionCode === activeCode) : null;
+  const selectedEntry = activeCode ? data.history.find((h) => h.electionCode === activeCode) : null;
 
   let ttX = 0, ttY = 0, TT_W = 0;
   if (selectedPoint) {
@@ -279,7 +340,7 @@ function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse;
 
   return (
     <div style={{ padding: "12px 0" }}>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} ref={chartRef}>
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", touchAction: "manipulation" }}>
           {gridLines.map((pct) => (
             <g key={pct}>
@@ -298,9 +359,15 @@ function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse;
               <g key={key}>
                 <path d={path} fill="none" stroke={colour} strokeWidth={2.5} opacity={0.9} />
                 {sorted.map((p) => {
-                  const isSel = p.electionCode === selectedYear;
+                  const isSel = p.electionCode === activeCode;
                   return (
-                    <g key={p.electionCode} onClick={() => onSelectYear(selectedYear === p.electionCode ? null : p.electionCode)} style={{ cursor: "pointer" }}>
+                    <g
+                      key={p.electionCode}
+                      onClick={() => onSelectYear(selectedYear === p.electionCode ? null : p.electionCode)}
+                      onMouseEnter={() => setHoveredCode(p.electionCode)}
+                      onMouseLeave={() => setHoveredCode((prev) => (prev === p.electionCode ? null : prev))}
+                      style={{ cursor: "pointer" }}
+                    >
                       <circle cx={xPos(p.year)} cy={yPos(p.votePct)} r={16} fill="transparent" />
                       <circle cx={xPos(p.year)} cy={yPos(p.votePct)} r={isSel ? 6 : 4} fill={colour} stroke={isSel ? "#f2c94c" : "none"} strokeWidth={isSel ? 2 : 0} />
                     </g>

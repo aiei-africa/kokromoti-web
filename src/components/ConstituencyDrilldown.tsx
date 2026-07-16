@@ -253,7 +253,6 @@ export default function ConstituencyDrilldown({
   const [tab, setTab] = useState<Tab>(initialTab ?? "summary");
   const [result, setResult] = useState<ConstituencyFullResult | null>(null);
   const [stations, setStations] = useState<ArchiveStation[] | null>(null);
-  const [history, setHistory] = useState<ConstituencyHistory | null>(null);
   const [facts, setFacts] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const electionCode = currentElectionCodeFor(electionType);
@@ -285,11 +284,7 @@ export default function ConstituencyDrilldown({
       const fetchStations = electionCode === "2024" ? api.stationsCurrent(constituency.id) : api.stationsArchive(constituency.id);
       fetchStations.then(setStations).catch(() => setStations([]));
     }
-    if (tab === "history" && !history) {
-      const type = electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY";
-      api.constituencyHistory(constituency.id, type).then(setHistory).catch(() => null);
-    }
-  }, [tab, constituency.id, electionType, stations, history]);
+  }, [tab, constituency.id, electionType, stations]);
 
   const sortedVotes = result?.votes ? [...result.votes].sort((a, b) => b.votePct - a.votePct) : [];
   const leader = sortedVotes[0];
@@ -419,14 +414,6 @@ export default function ConstituencyDrilldown({
         {tab === "history" && (
           <div style={{ padding: "12px 16px 0" }}>
             <MapExplorer mode="constituency-isolated" constituencyId={constituency.id} constituencyName={constituency.name} />
-            {!history && <div className="tap-hint" style={{ padding: 24 }}>Loading history...</div>}
-            {history && (
-              <HistoryTrendChart
-                history={history.history}
-                trend={history.trend}
-                allYears={history.history.map((h) => h.year)}
-              />
-            )}
           </div>
         )}
 
