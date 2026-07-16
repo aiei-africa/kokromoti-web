@@ -103,8 +103,8 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
   // the SVG entirely and bled into the legend/hint text below it. A normal
   // HTML element in normal document flow doesn't have that failure mode.
   const TT_W = W * 0.96;
-  const candCount = selectedEntry ? Math.max(1, selectedEntry.candidates.length) : 1;
-  const roughTTH = selectedEntry && selectedEntry.candidates.length > 0 ? 46 + candCount * 38 : 50;
+  const candCount = selectedEntry ? Math.max(1, (selectedEntry.candidates ?? []).length) : 1;
+  const roughTTH = selectedEntry && (selectedEntry.candidates ?? []).length > 0 ? 46 + candCount * 38 : 50;
   let ttX = 0, ttY = 0;
   if (selectedPoint) {
     const px = xPos(selectedPoint.year), py = yPos(selectedPoint.votePct);
@@ -141,9 +141,9 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
                     {/* invisible, larger touch target — the visible dot alone is too small to tap reliably on mobile */}
                     <circle cx={xPos(p.year)} cy={yPos(p.votePct)} r={14} fill="transparent" />
                     <circle
-                      cx={xPos(p.year)} cy={yPos(p.votePct)} r={isSelected ? 5.5 : p.provisional ? 3 : 3.5}
-                      fill={p.provisional ? "transparent" : colour}
-                      stroke={colour} strokeWidth={p.provisional ? 1.5 : isSelected ? 2 : 0}
+                      cx={xPos(p.year)} cy={yPos(p.votePct)} r={isSelected ? 5.5 : 3.5}
+                      fill={colour}
+                      stroke={colour} strokeWidth={isSelected ? 2 : 0}
                     />
                   </g>
                 );
@@ -168,11 +168,10 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, paddingBottom: 6, borderBottom: "2px solid #0a1220" }}>
               <span style={{ color: "#0a1220", fontSize: 17, fontWeight: 800 }}>
                 {selectedEntry.year}
-                {selectedEntry.provisional && <span style={{ marginLeft: 6, fontSize: 10, color: "#5C6E8A", fontWeight: 600 }}>PROVISIONAL</span>}
               </span>
               {selectedEntry.margin != null && <span style={{ fontSize: 12, color: "#0a1220", fontWeight: 600 }}>margin +{selectedEntry.margin.toFixed(2)}pt</span>}
             </div>
-            {selectedEntry.candidates.length === 0 ? (
+            {(selectedEntry.candidates ?? []).length === 0 ? (
               <div style={{ color: "#5C6E8A", fontSize: 13, fontStyle: "italic" }}>No data on record for {selectedEntry.year}.</div>
             ) : (
               <>
