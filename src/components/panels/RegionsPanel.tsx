@@ -56,7 +56,7 @@ export default function RegionsPanel({
         <div className="ghana-status-bar">
           <span className="ghana-panel-title">{regionFocus.toUpperCase()}</span>
         </div>
-        <MapExplorer mode="region-locked" regionName={regionFocus} onSelectConstituency={onSelectConstituency} />
+        <MapExplorer mode="region-locked" electionType={electionType} regionName={regionFocus} onSelectConstituency={onSelectConstituency} />
       </div>
     );
   }

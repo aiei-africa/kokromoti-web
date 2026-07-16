@@ -7,10 +7,6 @@ import { api } from "@/lib/api";
 const FALLBACK_COLOUR = "#5C6E8A";
 const PARTY_COLOUR: Record<string, string> = { NDC: "#1B6B3A", NPP: "#003082" };
 const YEARS = ["1996", "2000", "2004", "2008", "2012", "2016", "2020", "2024"];
-// Rough fallback only, used for the very first map creation before real
-// geometry has loaded. Every actual view (national/region/constituency)
-// replaces this with bounds computed from real GeoJSON the moment its
-// layer is shown — see lockToBounds().
 const FALLBACK_BOUNDS = L.latLngBounds([4.3, -3.6], [11.5, 1.5]);
 
 type Scope =
@@ -31,31 +27,19 @@ interface TrendResponse {
 }
 
 interface MapExplorerProps {
-  // "full": Ghana tab — all 16 regions, drills to constituencies within a
-  //   region, then a "Reveal All 276" button. Tapping a region calls
-  //   onNavigateToRegion instead of drilling in-place, so the host page can
-  //   switch the bottom-nav tab to Regions.
-  // "region-locked": Regions tab, focused on one specific region — shows
-  //   only that region's constituencies, no region-level view or back button.
-  // "constituency-isolated": Hist. Trend tab — one single constituency's
-  //   shape only, no drill interaction, chart locked to that constituency.
   mode: "full" | "region-locked" | "constituency-isolated";
-  regionName?: string; // required for region-locked
-  constituencyId?: string; // required for constituency-isolated
+  // Which race's results colour the map and feed the trend chart. Defaults
+  // to "presidential" for any caller that doesn't pass it, preserving
+  // prior behaviour. Added 16 Jul 2026 — every scope was PRESIDENTIAL-only
+  // before this.
+  electionType?: "presidential" | "parliamentary";
+  regionName?: string;
+  constituencyId?: string;
   constituencyName?: string;
   onNavigateToRegion?: (regionName: string) => void;
   onSelectConstituency?: (id: string, name: string, region: string | null) => void;
 }
 
-// Locks the map to a real layer's own geometry (not a hand-typed
-// rectangle): pads the bounds slightly for maxBounds so there's a touch
-// of breathing room without leaking into neighbouring territory, and sets
-// minZoom to the exact zoom level that fits those bounds, so the map can
-// never be zoomed out past the edge of whatever is actually being shown.
-// Applied at every scope — national, region-locked, and
-// constituency-isolated — using each view's own real bounds, not a shared
-// national box, which was the root cause of region/constituency views
-// still being able to pan into neighbouring regions or countries.
 function lockToBounds(map: L.Map, bounds: L.LatLngBounds) {
   if (!bounds.isValid()) return;
   const padded = bounds.pad(0.06);
@@ -64,14 +48,17 @@ function lockToBounds(map: L.Map, bounds: L.LatLngBounds) {
   map.setMinZoom(fitZoom);
 }
 
-export default function MapExplorer({ mode, regionName, constituencyId, constituencyName, onNavigateToRegion, onSelectConstituency }: MapExplorerProps) {
+export default function MapExplorer({ mode, electionType = "presidential", regionName, constituencyId, constituencyName, onNavigateToRegion, onSelectConstituency }: MapExplorerProps) {
+  const apiType = electionType === "parliamentary" ? "PARLIAMENTARY" : "PRESIDENTIAL";
+
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.GeoJSON | null>(null);
-  // Real national bounds, computed once from the actual constituency
-  // geometry the moment it loads — replaces the old hand-typed rectangle
-  // for every national-scope fitBounds/lockToBounds call.
   const nationalBoundsRef = useRef<L.LatLngBounds | null>(null);
+  // Live winner-by-shortName for the requested electionType, merged onto
+  // the static regions GeoJSON's baked-in (Presidential-only) properties
+  // at render time — see regionStyle().
+  const regionWinnerRef = useRef<Map<string, { winnerParty: string | null; winnerColourHex: string | null }>>(new Map());
 
   const [regionsGeoJSON, setRegionsGeoJSON] = useState<any>(null);
   const [constituenciesGeoJSON, setConstituenciesGeoJSON] = useState<any>(null);
@@ -84,7 +71,7 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     mode === "constituency-isolated" && constituencyId
       ? { type: "constituency", id: constituencyId, name: constituencyName ?? "", region: regionName ?? null }
       : mode === "region-locked" && regionName
-      ? { type: "region", id: "", name: regionName } // id filled in once regions list loads
+      ? { type: "region", id: "", name: regionName }
       : { type: "national" }
   );
   const [trendData, setTrendData] = useState<TrendResponse | null>(null);
@@ -92,30 +79,51 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
 
   useEffect(() => {
     if (mode === "full") fetch("/ghana-regions-16.geojson").then((r) => r.json()).then(setRegionsGeoJSON);
+  }, []);
+
+  // Boundaries + region-winner data both depend on electionType, so both
+  // are (re)fetched whenever it changes, not just on mount.
+  useEffect(() => {
     (async () => {
-      const boundaries = await api.mapConstituencyBoundaries();
+      const boundaries = await api.mapConstituencyBoundaries(apiType);
       setConstituenciesGeoJSON(boundaries);
-      nationalBoundsRef.current = L.geoJSON(boundaries as any).getBounds();
-      const regions = await api.mapRegions();
-      const map = new Map(regions.map((r: any) => [r.shortName, r.id]));
-      setRegionIdByShortName(map);
+      if (!nationalBoundsRef.current) nationalBoundsRef.current = L.geoJSON(boundaries as any).getBounds();
+
+      const regions = await api.mapRegions(apiType);
+      const idMap = new Map(regions.map((r: any) => [r.shortName, r.id]));
+      setRegionIdByShortName(idMap);
+      regionWinnerRef.current = new Map(regions.map((r: any) => [r.shortName, { winnerParty: r.winnerParty ?? null, winnerColourHex: r.winnerColourHex ?? null }]));
+
       if (mode === "region-locked" && regionName) {
-        const id = map.get(regionName);
-        if (id) setScope({ type: "region", id, name: regionName });
+        const id = idMap.get(regionName);
+        if (id) setScope((prev) => (prev.type === "region" ? { ...prev, id } : prev));
       }
     })();
-  }, []);
+  }, [apiType]);
+
+  // Redraw whatever's currently shown when electionType changes (colours
+  // depend on it; geometry does not, so the layer's shape stays the same,
+  // only its fill updates). Skipped on the very first mount — the
+  // ready-gated effect further down handles initial draw.
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) { didMountRef.current = true; return; }
+    if (!mapRef.current || !layerRef.current) return;
+    if (mode === "full") { if (mapState === "regions") showRegions(); else showAllConstituencies(); }
+    else if (mode === "region-locked" && regionName) showRegionFiltered(regionName, false);
+    else if (mode === "constituency-isolated") showIsolatedConstituency();
+  }, [apiType]);
 
   useEffect(() => {
     setSelectedYear(null);
     const params = scope.type === "national" ? "scope=national" : `scope=${scope.type}&id=${scope.id}`;
     setTrendData(null);
     if (scope.type !== "region" || scope.id) {
-      api.mapTrend(params)
+      api.mapTrend(`${params}&type=${apiType}`)
         .then((data) => setTrendData(data && data.trend ? data : null))
         .catch(() => setTrendData(null));
     }
-  }, [scope]);
+  }, [scope, apiType]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -126,8 +134,9 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
   }, []);
 
   function regionStyle(feature: any) {
-    const party = feature.properties.winner_party;
-    return { fillColor: PARTY_COLOUR[party] || "#888", weight: 1.5, opacity: 1, color: "#0d1b30", fillOpacity: 0.65 };
+    const live = regionWinnerRef.current.get(feature.properties.region);
+    const party = live ? live.winnerParty : feature.properties.winner_party;
+    return { fillColor: PARTY_COLOUR[party as string] || "#888", weight: 1.5, opacity: 1, color: "#0d1b30", fillOpacity: 0.65 };
   }
   function constStyle(feature: any) {
     const party = feature.properties.winnerParty;
@@ -164,13 +173,6 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     setMapState("region-filtered");
     const filtered = { type: "FeatureCollection", features: constituenciesGeoJSON.features.filter((f: any) => f.properties.region === targetRegion) };
     if (filtered.features.length === 0) {
-      // A region name that doesn't match anything in the live constituency
-      // data — calling fitBounds on an empty layer throws ("Bounds are not
-      // valid"), so this stops short instead of crashing. Real cause
-      // fixed at the data level (a stale static file had hyphenated region
-      // names where the live backend uses spaces), but this guard stays
-      // regardless, since any future naming drift between a static asset
-      // and the live database should fail quietly, not crash the app.
       console.warn(`No constituencies matched region "${targetRegion}" — check for a naming mismatch between the region source and live data.`);
       return;
     }
@@ -191,9 +193,6 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     layerRef.current = layer;
     const bounds = (layer as any).getBounds();
     if (fitToBounds) mapRef.current.fitBounds(bounds, { padding: [16, 16] });
-    // Region-locked scope: bounds now come from THIS region's own layer,
-    // not the national box — this is what stops the map panning out into
-    // neighbouring regions/countries while a region is focused.
     lockToBounds(mapRef.current, bounds);
   }
 
@@ -228,9 +227,6 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
     layerRef.current = layer;
     const bounds = (layer as any).getBounds();
     mapRef.current.fitBounds(bounds, { padding: [8, 8] });
-    // Non-interactive here (dragging/zoom/scroll already disabled for this
-    // mode), but locked to real bounds regardless so this stays correct
-    // if interaction is ever enabled for this mode later.
     lockToBounds(mapRef.current, bounds);
   }
 
@@ -263,16 +259,12 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
           </div>
         )}
       </div>
-      {/* Chart column now renders for every mode, including
-          constituency-isolated — previously suppressed here, which was
-          the reason the isolated view's chart rendered as a separate
-          stacked block elsewhere instead of side-by-side with its map. */}
       <div className="map-explorer-chart-col">
         <div className="map-explorer-scope-label">
           {scope.type === "national" ? "National" : scope.type === "region" ? `${scope.name} Region` : scope.name}
         </div>
         <div className="map-explorer-scope-sub">
-          {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · Presidential results, 1996–2024`}
+          {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · ${electionType === "parliamentary" ? "Parliamentary" : "Presidential"} results, 1996–2024`}
         </div>
         {trendData ? <TrendChart data={trendData} selectedYear={selectedYear} onSelectYear={setSelectedYear} /> : <div style={{ color: "var(--muted)", padding: 40, textAlign: "center" }}>Loading trend…</div>}
       </div>
@@ -281,19 +273,9 @@ export default function MapExplorer({ mode, regionName, constituencyId, constitu
 }
 
 function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse; selectedYear: string | null; onSelectYear: (c: string | null) => void }) {
-  // Second, independent guard — the caller already checks trendData is
-  // present before rendering this at all, but a response that came back
-  // 200 OK with an unexpected shape (missing/null `trend` specifically)
-  // would still reach here and crash on data.trend.NDC otherwise. This is
-  // exactly the failure that hit production: an outer truthy check isn't
-  // enough if the object's own required fields aren't actually there.
   if (!data || !data.trend || !data.history) {
     return <div style={{ color: "var(--muted)", padding: 40, textAlign: "center" }}>Trend data unavailable right now.</div>;
   }
-  // Hover previews a point on desktop (mouse only); a pinned point
-  // (selectedYear, set via click, controlled by the parent) takes
-  // priority over hover, so hovering elsewhere never disturbs a pin.
-  // Same pattern as the constituency drilldown's HistoryTrendChart.
   const [hoveredCode, setHoveredCode] = useState<string | null>(null);
   const activeCode = selectedYear ?? hoveredCode;
   const chartRef = useRef<HTMLDivElement>(null);

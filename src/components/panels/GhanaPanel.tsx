@@ -10,7 +10,7 @@ const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
 // Shows both election types simultaneously (unlike Results, which is
 // tab-scoped to one type at a time) — so it independently tracks each
 // type's own current year rather than depending on any outer tab state.
-export default function GhanaPanel({ onNavigateToRegion }: { onNavigateToRegion: (regionName: string) => void }) {
+export default function GhanaPanel({ electionType, onNavigateToRegion }: { electionType: "presidential" | "parliamentary"; onNavigateToRegion: (regionName: string) => void }) {
   const [national, setNational] = useState<PresidentialNational | null>(null);
   const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ export default function GhanaPanel({ onNavigateToRegion }: { onNavigateToRegion:
         <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : "All-time"}</span>
       </div>
 
-      <MapExplorer mode="full" onNavigateToRegion={onNavigateToRegion} />
+      <MapExplorer mode="full" electionType={electionType} onNavigateToRegion={onNavigateToRegion} />
 
       <div style={{ padding: "0 0 80px" }}>
         {national && (

@@ -413,7 +413,7 @@ export default function ConstituencyDrilldown({
 
         {tab === "history" && (
           <div style={{ padding: "12px 16px 0" }}>
-            <MapExplorer mode="constituency-isolated" constituencyId={constituency.id} constituencyName={constituency.name} />
+            <MapExplorer mode="constituency-isolated" electionType={electionType} constituencyId={constituency.id} constituencyName={constituency.name} />
           </div>
         )}
 

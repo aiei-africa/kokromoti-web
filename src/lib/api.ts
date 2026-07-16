@@ -97,9 +97,9 @@ export interface ConstituencyHistory {
 }
 
 export const api = {
-  mapConstituencyBoundaries: () => apiFetch<any>("/map-dashboard/constituency-boundaries"),
+  mapConstituencyBoundaries: (type: "PRESIDENTIAL" | "PARLIAMENTARY" = "PRESIDENTIAL") => apiFetch<any>(`/map-dashboard/constituency-boundaries?type=${type}`),
   mapTrend: (queryString: string) => apiFetch<any>(`/map-dashboard/trend?${queryString}`),
-  mapRegions: () => apiFetch<any[]>("/map-dashboard/regions"),
+  mapRegions: (type: "PRESIDENTIAL" | "PARLIAMENTARY" = "PRESIDENTIAL") => apiFetch<any[]>(`/map-dashboard/regions?type=${type}`),
   elections: () => apiFetch<Election[]>("/elections"),
   election: (code: string) => apiFetch<Election>(`/elections/${code}`),
   regions: () => apiFetch<Region[]>("/geography/regions"),
