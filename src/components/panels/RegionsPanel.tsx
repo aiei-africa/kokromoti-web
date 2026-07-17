@@ -7,24 +7,25 @@ import GhanaFlag from "../GhanaFlag";
 const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
 
 const FALLBACK_COLOUR = "#5C6E8A";
-const OTHER_COLOUR = "#94A3B8";
 
 interface RegionCardData {
   region: Region;
   data: RegionResults | null;
 }
 
-// regionFocus is set either by tapping a region on the Ghana tab's national
-// map, OR (as of this fix) by tapping a region's own card here — both now
-// lead to the SAME single-region view: the real summary card (stats,
-// turnout, party breakdown, full constituency-by-constituency winner list)
-// followed by the interactive region-locked map + trend chart. Previously
-// tapping a card here only toggled an inline text dropdown of past
-// winners, a completely disconnected, weaker interaction from what tapping
-// the same region on Ghana's map already did — this unifies the two into
-// one real regional-level mirror of GhanaPanel. Direct bottom-nav
-// navigation to Regions (regionFocus null) keeps the existing 16-card list
-// behaviour, unchanged, as the entry point into either path.
+// RegionsPanel is the regional-level mirror of GhanaPanel — same template,
+// same order: summary "league table" stats first, interactive map +
+// trend chart below. Regional is just Ghana's national aggregation scoped
+// to one region instead of the whole country; both must look and behave
+// the same way, just at a different level.
+//
+// regionFocus is set either by tapping a region on the Ghana tab's
+// national map, OR by tapping a region's own card here — both lead to the
+// exact same single-region drill-down. No static per-constituency text
+// list anywhere in this file — that content is redundant with the real,
+// interactive map below it (tap any constituency on the map to open its
+// actual drilldown), and repeating it as static text was the outdated
+// pattern this was built to replace.
 export default function RegionsPanel({
   electionType, electionYear, regionFocus, onSelectConstituency, onFocusRegion,
 }: {
@@ -56,7 +57,10 @@ export default function RegionsPanel({
     return () => { cancelled = true; };
   }, [electionType, electionYear]);
 
-  function renderRegionCard({ region, data }: RegionCardData, expanded: boolean) {
+  // The "league table" summary — constituencies declared, turnout, top-3
+  // party running total. Same content whether shown in the card list or
+  // at the top of a single region's drill-down; only `clickable` differs.
+  function renderRegionSummary({ region, data }: RegionCardData, clickable: boolean) {
     const totalConst = region._count.constituencies;
     const declaredConst = data?.constituenciesReporting ?? 0;
     const top3 = data?.results.slice(0, 3) ?? [];
@@ -65,8 +69,8 @@ export default function RegionsPanel({
       <div
         className="reg-card"
         key={region.id}
-        onClick={expanded ? undefined : () => onFocusRegion(region.shortName)}
-        style={{ cursor: expanded ? "default" : "pointer" }}
+        onClick={clickable ? () => onFocusRegion(region.shortName) : undefined}
+        style={{ cursor: clickable ? "pointer" : "default" }}
       >
         <div className="reg-card-top">
           <div className="reg-card-flag"><GhanaFlag size={24} /></div>
@@ -121,35 +125,25 @@ export default function RegionsPanel({
             </div>
           </div>
         )}
-
-        {expanded && data && data.byConstituency.length > 0 && (
-          <div style={{ padding: "10px 12px", borderTop: "1px solid var(--border)" }}>
-            <div className="reg-pres-label" style={{ marginBottom: 8 }}>All constituencies, {region.name}</div>
-            {data.byConstituency.map((c) => (
-              <div key={c.constituency} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13 }}>
-                <span style={{ color: "var(--white)" }}>{c.constituency}</span>
-                <span style={{ color: "var(--muted)" }}>{c.winner ? `${c.winner.party} — ${c.winner.fullName}` : "Awaiting result"}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     );
   }
 
   if (regionFocus) {
-    // A real drill-down: title, then straight into the interactive map +
-    // trend chart. No summary card, no static constituency-by-constituency
-    // text list here — that content duplicated what the map itself already
-    // lets you explore interactively (tap any constituency on the map to
-    // open its real drilldown), and repeating it as static text was the
-    // same "outdated dropdown" pattern this was supposed to replace, just
-    // moved to a new screen instead of actually removed.
+    const focused = cards.find((c) => c.region.shortName === regionFocus);
     return (
       <div>
         <div className="ghana-status-bar">
           <span className="ghana-panel-title">{regionFocus.toUpperCase()}</span>
         </div>
+        {/* Same template as GhanaPanel: summary stats on top, dashboard
+            (map + trend chart) below — regional is just this same
+            aggregation scoped to one region instead of the whole country. */}
+        {focused ? (
+          <div style={{ padding: 12 }}>{renderRegionSummary(focused, false)}</div>
+        ) : (
+          !loading && <div className="tap-hint" style={{ padding: 20 }}>No data available for {regionFocus} yet.</div>
+        )}
         <MapExplorer mode="region-locked" electionType={electionType} regionName={regionFocus} onSelectConstituency={onSelectConstituency} />
       </div>
     );
@@ -159,7 +153,7 @@ export default function RegionsPanel({
 
   return (
     <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 12 }}>
-      {cards.map((cardData) => renderRegionCard(cardData, false))}
+      {cards.map((cardData) => renderRegionSummary(cardData, true))}
     </div>
   );
 }
