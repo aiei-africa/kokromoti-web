@@ -106,7 +106,7 @@ function AppShell() {
           </div>
           <div className={`panel ${navPanel === "favourites" ? "active" : ""}`}>
             {navPanel === "favourites" && (
-              <FavouritesPanel onSelectConstituency={(c) => { setConstituencyInitialTab("summary"); setSelectedConstituency(c); }} />
+              <FavouritesPanel electionType={electionType} electionYear={electionYear} onSelectConstituency={(c) => { setConstituencyInitialTab("summary"); setSelectedConstituency(c); }} />
             )}
           </div>
           <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
