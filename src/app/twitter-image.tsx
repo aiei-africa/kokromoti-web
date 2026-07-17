@@ -5,7 +5,7 @@ import { ImageResponse } from "next/og";
 // ("Detected Node" in the build log), where an edge-runtime route can
 // silently fail to serve correctly. Node.js is the default when no
 // runtime is declared, which is the correct choice here.
-export const alt = "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency";
+export const alt = "Kokromoti — Ghana's First Ever True Election App — 33 Years of Ghana Elections, Down to the Last Constituency";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

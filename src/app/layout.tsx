@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
+    default: "Kokromoti — Ghana's First Ever True Election App — 33 Years of Ghana Elections, Down to the Last Constituency",
     template: "%s — Kokromoti",
   },
   description:
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "Kokromoti",
-    title: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
+    title: "Kokromoti — Ghana's First Ever True Election App — 33 Years of Ghana Elections, Down to the Last Constituency",
     description: "Every Presidential & Parliamentary election since 1992 — national trends down to all 276 constituencies. Real, verified results. This is Ghana's most complete election intelligence platform.",
     // opengraph-image.png is auto-detected by Next.js from src/app/ — no need
     // to reference it manually here.
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
+    title: "Kokromoti — Ghana's First Ever True Election App — 33 Years of Ghana Elections, Down to the Last Constituency",
     description: "Presidential & Parliamentary results since 1992 — every region, all 276 constituencies. Explore Kokromoti.",
     // twitter-image.png is likewise auto-detected.
   },
