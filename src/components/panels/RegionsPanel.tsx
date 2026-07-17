@@ -138,17 +138,18 @@ export default function RegionsPanel({
   }
 
   if (regionFocus) {
-    const focused = cards.find((c) => c.region.shortName === regionFocus);
+    // A real drill-down: title, then straight into the interactive map +
+    // trend chart. No summary card, no static constituency-by-constituency
+    // text list here — that content duplicated what the map itself already
+    // lets you explore interactively (tap any constituency on the map to
+    // open its real drilldown), and repeating it as static text was the
+    // same "outdated dropdown" pattern this was supposed to replace, just
+    // moved to a new screen instead of actually removed.
     return (
       <div>
         <div className="ghana-status-bar">
           <span className="ghana-panel-title">{regionFocus.toUpperCase()}</span>
         </div>
-        {focused ? (
-          <div style={{ padding: 12 }}>{renderRegionCard(focused, true)}</div>
-        ) : (
-          !loading && <div className="tap-hint" style={{ padding: 20 }}>No data available for {regionFocus} yet.</div>
-        )}
         <MapExplorer mode="region-locked" electionType={electionType} regionName={regionFocus} onSelectConstituency={onSelectConstituency} />
       </div>
     );
