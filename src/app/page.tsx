@@ -146,7 +146,7 @@ function AppShell() {
           )}
 
           <div className="date-bar">
-            {navPanel === "results" || navPanel === "regions" || navPanel === "ghana" ? (
+            {navPanel === "results" || navPanel === "regions" || navPanel === "ghana" || navPanel === "favourites" ? (
               <ElectionYearTabs value={electionYear} onChange={setElectionYear} />
             ) : (
               <div className="election-badge historical">

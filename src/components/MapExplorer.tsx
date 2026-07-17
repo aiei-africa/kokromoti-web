@@ -105,6 +105,15 @@ export default function MapExplorer({ mode, electionType = "presidential", regio
   // depend on it; geometry does not, so the layer's shape stays the same,
   // only its fill updates). Skipped on the very first mount — the
   // ready-gated effect further down handles initial draw.
+  // BUG FOUND IN AUDIT (17 Jul 2026): this used to key off [apiType]
+  // directly, which fires the instant the Presidential/Parliamentary tab
+  // flips — before the async fetch for the NEW type's data has resolved.
+  // The redraw ran with stale (previous race's) geoJSON/region-winner
+  // data, and since nothing else re-triggers it once the fresh data
+  // actually lands (regionWinnerRef is a ref — updating it doesn't
+  // schedule any effect), the map silently kept showing the wrong race's
+  // colours until a full remount. Now keyed on the real data finishing
+  // its update instead of the type merely changing.
   const didMountRef = useRef(false);
   useEffect(() => {
     if (!didMountRef.current) { didMountRef.current = true; return; }
@@ -112,7 +121,7 @@ export default function MapExplorer({ mode, electionType = "presidential", regio
     if (mode === "full") { if (mapState === "regions") showRegions(); else showAllConstituencies(); }
     else if (mode === "region-locked" && regionName) showRegionFiltered(regionName, false);
     else if (mode === "constituency-isolated") showIsolatedConstituency();
-  }, [apiType]);
+  }, [constituenciesGeoJSON, regionIdByShortName]);
 
   useEffect(() => {
     setSelectedYear(null);
