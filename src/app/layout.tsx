@@ -12,28 +12,28 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kokromoti — Ghana Election Results",
+    default: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
     template: "%s — Kokromoti",
   },
   description:
-    "Ghana's election intelligence platform — verified historical results (1992–2024), built by AIEI, the African Institute for Electoral Intelligence.",
+    "Every Ghana election since 1992 — Presidential & Parliamentary, national to constituency level. All 16 regions, all 276 constituencies, real verified results. Built by AIEI, the African Institute for Electoral Intelligence.",
   applicationName: "Kokromoti",
-  keywords: ["Ghana elections", "election results", "Kokromoti", "AIEI", "electoral intelligence", "Ghana politics"],
+  keywords: ["Ghana elections", "election results", "Ghana election history", "Kokromoti", "AIEI", "electoral intelligence", "Ghana politics", "constituency results", "Ghana parliamentary elections", "Ghana presidential elections"],
   authors: [{ name: "AIEI — African Institute for Electoral Intelligence" }],
   manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
     url: SITE_URL,
     siteName: "Kokromoti",
-    title: "Kokromoti — Ghana Election Results",
-    description: "Election Intelligence. Power to the People. Verified historical Ghana election results, 1992–2024.",
+    title: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
+    description: "Every Presidential & Parliamentary election since 1992 — national trends down to all 276 constituencies. Real, verified results. This is Ghana's most complete election intelligence platform.",
     // opengraph-image.png is auto-detected by Next.js from src/app/ — no need
     // to reference it manually here.
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kokromoti — Ghana Election Results",
-    description: "Election Intelligence. Power to the People.",
+    title: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
+    description: "Presidential & Parliamentary results since 1992 — every region, all 276 constituencies. Explore Kokromoti.",
     // twitter-image.png is likewise auto-detected.
   },
 };

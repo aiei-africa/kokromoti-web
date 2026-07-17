@@ -225,8 +225,8 @@ function AppShell() {
           const params = new URLSearchParams({ panel: navPanel, type: electionType, year: electionYear });
           return {
             url: origin + "/?" + params.toString(),
-            title: "Kokromoti — Ghana Election Results",
-            text: "Election Intelligence. Power to the People. Verified Ghana election results, 1992–2024.",
+            title: "Kokromoti — 33 Years of Ghana Elections, Down to the Last Constituency",
+            text: "Every Ghana election since 1992 — Presidential & Parliamentary, all 16 regions, all 276 constituencies. Explore Kokromoti.",
           };
         }}
       />
