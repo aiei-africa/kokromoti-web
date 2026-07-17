@@ -260,12 +260,6 @@ export default function MapExplorer({ mode, electionType = "presidential", regio
         )}
       </div>
       <div className="map-explorer-chart-col">
-        <div className="map-explorer-scope-label">
-          {scope.type === "national" ? "National" : scope.type === "region" ? `${scope.name} Region` : scope.name}
-        </div>
-        <div className="map-explorer-scope-sub">
-          {scope.type === "national" ? "All 276 constituencies, 1996–2024" : scope.type === "region" ? "Vote totals summed across every constituency in this region" : `${scope.region ?? ""} Region · ${electionType === "parliamentary" ? "Parliamentary" : "Presidential"} results, 1996–2024`}
-        </div>
         {trendData ? <TrendChart data={trendData} selectedYear={selectedYear} onSelectYear={setSelectedYear} /> : <div style={{ color: "var(--muted)", padding: 40, textAlign: "center" }}>Loading trend…</div>}
       </div>
     </div>

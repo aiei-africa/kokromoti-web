@@ -34,9 +34,7 @@ export default function GhanaPanel({ electionType, electionYear, onNavigateToReg
         <span className="ghana-panel-sub">{loading ? "Aggregating all levels…" : "All-time"}</span>
       </div>
 
-      <MapExplorer mode="full" electionType={electionType} onNavigateToRegion={onNavigateToRegion} />
-
-      <div style={{ padding: "0 0 80px" }}>
+      <div style={{ padding: "0" }}>
         {national && (
           <div className="constituency-row">
             <div className="row-top">
@@ -76,6 +74,10 @@ export default function GhanaPanel({ electionType, electionYear, onNavigateToReg
         {!national && !seatSummary && !loading && (
           <div className="no-results">No national data available yet.</div>
         )}
+      </div>
+
+      <div style={{ padding: "0 0 80px" }}>
+        <MapExplorer mode="full" electionType={electionType} onNavigateToRegion={onNavigateToRegion} />
       </div>
     </div>
   );
