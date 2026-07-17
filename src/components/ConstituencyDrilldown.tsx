@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { api, type ConstituencyFullResult, type ArchiveStation, type ConstituencyHistory, type CandidateResult } from "@/lib/api";
-import { currentElectionCodeFor } from "@/lib/results";
+
 import type { SelectedConstituency } from "@/app/page";
 
 const MapExplorer = dynamic(() => import("./MapExplorer"), { ssr: false });
@@ -243,10 +243,11 @@ function HistoryTrendChart({ history, trend, allYears }: { history: Constituency
 }
 
 export default function ConstituencyDrilldown({
-  constituency, electionType, onClose, initialTab,
+  constituency, electionType, electionYear, onClose, initialTab,
 }: {
   constituency: SelectedConstituency;
   electionType: "presidential" | "parliamentary";
+  electionYear: string;
   onClose: () => void;
   initialTab?: Tab; // arriving via the map explorer opens straight to "history" instead of the default "summary"
 }) {
@@ -255,7 +256,7 @@ export default function ConstituencyDrilldown({
   const [stations, setStations] = useState<ArchiveStation[] | null>(null);
   const [facts, setFacts] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const electionCode = currentElectionCodeFor(electionType);
+  const electionCode = electionYear;
 
   useEffect(() => {
     setLoading(true);

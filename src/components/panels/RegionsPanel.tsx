@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { api, type Region, type RegionResults } from "@/lib/api";
-import { currentElectionCodeFor } from "@/lib/results";
 import GhanaFlag from "../GhanaFlag";
 
 const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
@@ -21,9 +20,10 @@ interface RegionCardData {
 // bottom-nav navigation to Regions (regionFocus null) keeps the existing
 // card-list behaviour unchanged.
 export default function RegionsPanel({
-  electionType, regionFocus, onSelectConstituency,
+  electionType, electionYear, regionFocus, onSelectConstituency,
 }: {
   electionType: "presidential" | "parliamentary";
+  electionYear: string;
   regionFocus: string | null;
   onSelectConstituency: (id: string, name: string, region: string | null) => void;
 }) {
@@ -35,7 +35,7 @@ export default function RegionsPanel({
     let cancelled = false;
     setLoading(true);
     const type = electionType.toUpperCase() as "PRESIDENTIAL" | "PARLIAMENTARY";
-    const electionCode = currentElectionCodeFor(electionType);
+    const electionCode = electionYear;
 
     api.regions().then(async (regions) => {
       const sorted = [...regions].sort((a, b) => a.name.localeCompare(b.name));

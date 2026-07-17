@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { api, type PresidentialNational, type ParliamentarySummary } from "@/lib/api";
-import { CURRENT_PRESIDENTIAL_ELECTION_CODE, CURRENT_PARLIAMENTARY_ELECTION_CODE } from "@/lib/results";
+
 import CandidateResultRow from "../CandidateResultRow";
 
 const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
@@ -10,7 +10,7 @@ const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
 // Shows both election types simultaneously (unlike Results, which is
 // tab-scoped to one type at a time) — so it independently tracks each
 // type's own current year rather than depending on any outer tab state.
-export default function GhanaPanel({ electionType, onNavigateToRegion }: { electionType: "presidential" | "parliamentary"; onNavigateToRegion: (regionName: string) => void }) {
+export default function GhanaPanel({ electionType, electionYear, onNavigateToRegion }: { electionType: "presidential" | "parliamentary"; electionYear: string; onNavigateToRegion: (regionName: string) => void }) {
   const [national, setNational] = useState<PresidentialNational | null>(null);
   const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,14 +18,14 @@ export default function GhanaPanel({ electionType, onNavigateToRegion }: { elect
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.presidentialNational(CURRENT_PRESIDENTIAL_ELECTION_CODE).catch(() => null),
-      api.parliamentarySummary(CURRENT_PARLIAMENTARY_ELECTION_CODE).catch(() => null),
+      api.presidentialNational(electionYear).catch(() => null),
+      api.parliamentarySummary(electionYear).catch(() => null),
     ]).then(([n, s]) => {
       setNational(n);
       setSeatSummary(s);
       setLoading(false);
     });
-  }, []);
+  }, [electionYear]);
 
   return (
     <div id="panel-ghana">

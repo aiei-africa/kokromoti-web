@@ -12,6 +12,20 @@ export function currentElectionCodeFor(electionType: "presidential" | "parliamen
   return electionType === "presidential" ? CURRENT_PRESIDENTIAL_ELECTION_CODE : CURRENT_PARLIAMENTARY_ELECTION_CODE;
 }
 
+// Full span of Ghana's 4th Republic elections. 1992 is included as a real,
+// selectable year — per standing instruction, what the EC has for 1992 is
+// genuine EC data, not provisional; the first election under the 4th
+// Republic simply had less detailed collation capacity. Existing panels'
+// own empty-state handling ("No results available for {code} yet.")
+// already covers any real data gaps for a given year/type without needing
+// a special case here. 2028 is listed but has no Election row yet — see
+// isElectionYearActive.
+export const ALL_ELECTION_CODES = ["1992", "1996", "2000", "2004", "2008", "2012", "2016", "2020", "2024", "2028"];
+
+export function isElectionYearActive(code: string): boolean {
+  return code !== "2028";
+}
+
 // Real historical races have anywhere from 2 to 8 candidates. The Results
 // list view shows only the two leading candidates, genuinely data-driven —
 // sorted by vote share, take the top two, whoever they actually are. This

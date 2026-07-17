@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { api, type ConstituencySeatResult, type ConstituencyGeo } from "@/lib/api";
-import { currentElectionCodeFor, pickTopTwo } from "@/lib/results";
+import { pickTopTwo } from "@/lib/results";
 import CandidateResultRow from "../CandidateResultRow";
 import StarButton from "../StarButton";
 import type { SelectedConstituency } from "@/app/page";
@@ -12,9 +12,10 @@ interface RegionGroup {
 }
 
 export default function ResultsPanel({
-  electionType, searchQuery, onSelectConstituency,
+  electionType, electionYear, searchQuery, onSelectConstituency,
 }: {
   electionType: "presidential" | "parliamentary";
+  electionYear: string;
   searchQuery: string;
   onSelectConstituency: (c: SelectedConstituency) => void;
 }) {
@@ -24,7 +25,7 @@ export default function ResultsPanel({
   const [activeChip, setActiveChip] = useState<string | null>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
 
-  const electionCode = currentElectionCodeFor(electionType);
+  const electionCode = electionYear;
 
   useEffect(() => {
     let cancelled = false;

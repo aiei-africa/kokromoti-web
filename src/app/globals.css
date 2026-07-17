@@ -769,6 +769,8 @@
      applied conditionally in ConstituencyDrilldown.tsx. Summary/Stations/
      Facts/News tabs keep the standard .dd-shell width untouched. */
   .dd-shell--wide { max-width: min(1400px, 96vw); }
+  .ey-tabs { padding: 12px 20px; gap: 8px; }
+  .ey-tab { font-size: 13px; padding: 7px 16px; }
   .dd-const-name { font-size: 24px; }
   .dd-region-name { font-size: 14px; }
   .dd-tab { font-size: 13px; padding: 11px 14px; }
@@ -889,6 +891,8 @@
      the same treatment given to the main app's classes at this tier. ── */
   .dd-shell { max-width: 1300px; }
   .dd-shell--wide { max-width: min(1800px, 96vw); }
+  .ey-tabs { padding: 16px 28px; gap: 10px; }
+  .ey-tab { font-size: 16px; padding: 9px 20px; }
   .dd-const-name { font-size: 36px; }
   .dd-region-name { font-size: 19px; }
   .dd-tab { font-size: 17px; padding: 16px 20px; }
@@ -1064,6 +1068,16 @@
 
 /* Isolated single-constituency map on the Hist. Trend tab */
 .const-isolated-map { width: 100%; height: 160px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; border: 1px solid var(--border); }
+
+/* Shared year-tab strip — Results/Regions/Ghana panels. Self-contained,
+   new class names (not reusing region-filter-chip) since that class's
+   base-tier rules weren't inspected before this was built — avoids
+   assuming a layout it wasn't designed around. */
+.ey-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.ey-tabs::-webkit-scrollbar { display: none; }
+.ey-tab { flex-shrink: 0; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg2); color: var(--muted); cursor: pointer; white-space: nowrap; }
+.ey-tab.active { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+.ey-tab.disabled { opacity: 0.4; cursor: not-allowed; }
 
 @media (min-width: 768px) {
   .map-explorer { flex-direction: row; min-height: 70vh; }

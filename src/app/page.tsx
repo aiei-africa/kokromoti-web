@@ -9,6 +9,7 @@ import GhanaPanel from "@/components/panels/GhanaPanel";
 import RegionsPanel from "@/components/panels/RegionsPanel";
 import FavouritesPanel from "@/components/panels/FavouritesPanel";
 import ConstituencyDrilldown from "@/components/ConstituencyDrilldown";
+import ElectionYearTabs from "@/components/ElectionYearTabs";
 import AuthModal from "@/components/AuthModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
@@ -20,6 +21,13 @@ function AppShell() {
   const [showSplash, setShowSplash] = useState(true);
   const [navPanel, setNavPanel] = useState<NavPanel>("results");
   const [electionType, setElectionType] = useState<"presidential" | "parliamentary">("presidential");
+  // Global selected year for the Results/Regions/Ghana list-and-card views
+  // (ElectionYearTabs). Separate from electionType — one shared year
+  // across both races, so the app always shows "the same year" everywhere
+  // at once rather than three independent pickers. Does NOT affect the
+  // map, boundaries, or trend chart anywhere (MapExplorer) — those stay on
+  // 2024 shapefiles / full 1996-2024 trend series by design, unchanged.
+  const [electionYear, setElectionYear] = useState("2024");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConstituency, setSelectedConstituency] = useState<SelectedConstituency | null>(null);
@@ -66,10 +74,14 @@ function AppShell() {
           )}
 
           <div className="date-bar">
-            <div className="election-badge historical">
-              <div className="live-dot" />
-              {currentElectionCodeFor(electionType)} GENERAL ELECTIONS
-            </div>
+            {navPanel === "results" || navPanel === "regions" || navPanel === "ghana" ? (
+              <ElectionYearTabs value={electionYear} onChange={setElectionYear} />
+            ) : (
+              <div className="election-badge historical">
+                <div className="live-dot" />
+                {currentElectionCodeFor(electionType)} GENERAL ELECTIONS
+              </div>
+            )}
           </div>
         </HeaderStack>
 
@@ -78,6 +90,7 @@ function AppShell() {
             {navPanel === "results" && (
               <ResultsPanel
                 electionType={electionType}
+                electionYear={electionYear}
                 searchQuery={searchQuery}
                 onSelectConstituency={(c) => { setConstituencyInitialTab("summary"); setSelectedConstituency(c); }}
               />
@@ -98,12 +111,12 @@ function AppShell() {
           </div>
           <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
             {navPanel === "regions" && (
-              <RegionsPanel electionType={electionType} regionFocus={regionFocus} onSelectConstituency={handleSelectConstituencyFromMap} />
+              <RegionsPanel electionType={electionType} electionYear={electionYear} regionFocus={regionFocus} onSelectConstituency={handleSelectConstituencyFromMap} />
             )}
           </div>
           <div className={`panel ${navPanel === "ghana" ? "active" : ""}`}>
             {navPanel === "ghana" && (
-              <GhanaPanel electionType={electionType} onNavigateToRegion={(region) => { setRegionFocus(region); setNavPanel("regions"); }} />
+              <GhanaPanel electionType={electionType} electionYear={electionYear} onNavigateToRegion={(region) => { setRegionFocus(region); setNavPanel("regions"); }} />
             )}
           </div>
         </div>
@@ -115,6 +128,7 @@ function AppShell() {
         <ConstituencyDrilldown
           constituency={selectedConstituency}
           electionType={electionType}
+          electionYear={electionYear}
           initialTab={constituencyInitialTab}
           onClose={() => setSelectedConstituency(null)}
         />
