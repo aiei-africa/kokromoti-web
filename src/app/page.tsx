@@ -10,6 +10,7 @@ import RegionsPanel from "@/components/panels/RegionsPanel";
 import FavouritesPanel from "@/components/panels/FavouritesPanel";
 import ConstituencyDrilldown from "@/components/ConstituencyDrilldown";
 import ElectionYearTabs from "@/components/ElectionYearTabs";
+import ShareButton, { type ShareData } from "@/components/ShareButton";
 import AuthModal from "@/components/AuthModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
@@ -58,6 +59,27 @@ function AppShell() {
     } catch {
       // Corrupted/unavailable storage — fall back to normal defaults, not an error.
     }
+
+    // URL params win over sessionStorage — this is what makes a SHARED
+    // link actually open to the right screen for someone who has never
+    // been in this app before (they have no sessionStorage of their own).
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const panel = params.get("panel");
+      const type = params.get("type");
+      const year = params.get("year");
+      const cid = params.get("cid");
+      if (type === "presidential" || type === "parliamentary") setElectionType(type);
+      if (year) setElectionYear(year);
+      if (cid) {
+        setSelectedConstituency({ id: cid, name: params.get("cname") ?? "", regionName: params.get("cregion") ?? "" });
+        setConstituencyInitialTab("summary");
+      } else if (panel === "results" || panel === "live" || panel === "favourites" || panel === "regions" || panel === "ghana") {
+        setNavPanel(panel as NavPanel);
+      }
+    } catch {
+      // Malformed query string — ignore, defaults/sessionStorage already applied above.
+    }
   }, []);
 
   // Persist on every change to the state that defines "which screen the
@@ -69,6 +91,22 @@ function AppShell() {
       }));
     } catch {
       // Storage unavailable (private browsing, quota, etc.) — non-fatal, just skip persisting.
+    }
+    try {
+      const params = new URLSearchParams();
+      params.set("type", electionType);
+      params.set("year", electionYear);
+      if (selectedConstituency) {
+        params.set("panel", "constituency");
+        params.set("cid", selectedConstituency.id);
+        params.set("cname", selectedConstituency.name);
+        params.set("cregion", selectedConstituency.regionName);
+      } else {
+        params.set("panel", navPanel);
+      }
+      window.history.replaceState(null, "", "?" + params.toString());
+    } catch {
+      // Non-fatal — URL just won't reflect the current screen this time.
     }
   }, [navPanel, electionType, electionYear, regionFocus, selectedConstituency, constituencyInitialTab, searchQuery]);
 
@@ -170,6 +208,28 @@ function AppShell() {
       )}
 
       <AuthModal />
+      <ShareButton
+        getShareData={(): ShareData => {
+          const origin = typeof window !== "undefined" ? window.location.origin : "https://app.aiei-africa.org";
+          if (selectedConstituency) {
+            const params = new URLSearchParams({
+              panel: "constituency", type: electionType, year: electionYear,
+              cid: selectedConstituency.id, cname: selectedConstituency.name, cregion: selectedConstituency.regionName,
+            });
+            return {
+              url: origin + "/?" + params.toString(),
+              title: selectedConstituency.name + " — Kokromoti",
+              text: selectedConstituency.name + " (" + selectedConstituency.regionName + ") — " + electionYear + " " + electionType + " results on Kokromoti.",
+            };
+          }
+          const params = new URLSearchParams({ panel: navPanel, type: electionType, year: electionYear });
+          return {
+            url: origin + "/?" + params.toString(),
+            title: "Kokromoti — Ghana Election Results",
+            text: "Election Intelligence. Power to the People. Verified Ghana election results, 1992–2024.",
+          };
+        }}
+      />
     </>
   );
 }
