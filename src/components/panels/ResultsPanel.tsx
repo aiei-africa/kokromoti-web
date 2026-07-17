@@ -12,12 +12,13 @@ interface RegionGroup {
 }
 
 export default function ResultsPanel({
-  electionType, electionYear, searchQuery, onSelectConstituency,
+  electionType, electionYear, searchQuery, onSelectConstituency, onNavigateToRegion,
 }: {
   electionType: "presidential" | "parliamentary";
   electionYear: string;
   searchQuery: string;
   onSelectConstituency: (c: SelectedConstituency) => void;
+  onNavigateToRegion: (regionName: string) => void;
 }) {
   const [groups, setGroups] = useState<RegionGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +129,12 @@ export default function ResultsPanel({
 
       {visibleGroups.map((group) => (
         <div key={group.shortName}>
-          <div className="region-header" id={`region-${group.shortName}`} style={{ scrollMarginTop: "calc(var(--topbar-h, 97px) + var(--filter-bar-h, 50px))" }}>
+          <div
+            className="region-header"
+            id={`region-${group.shortName}`}
+            style={{ scrollMarginTop: "calc(var(--topbar-h, 97px) + var(--filter-bar-h, 50px))", cursor: "pointer" }}
+            onClick={() => onNavigateToRegion(group.shortName)}
+          >
             <div className="region-name">{group.shortName.toUpperCase()} REGION</div>
             <div className="region-count">
               {group.seats.length} {electionType === "presidential" ? "constituencies" : "seats"}

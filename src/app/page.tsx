@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TopBar from "@/components/TopBar";
 import HeaderStack from "@/components/HeaderStack";
 import BottomNav, { type NavPanel } from "@/components/BottomNav";
@@ -37,6 +37,40 @@ function AppShell() {
   // navigation. Direct navigation (handleNavChange below) clears this, so
   // tapping "Regions" normally still shows the existing full card list.
   const [regionFocus, setRegionFocus] = useState<string | null>(null);
+
+  // Restore the last-viewed screen once, on mount, from sessionStorage —
+  // NOT survives full browser close (by design: sessionStorage, not
+  // localStorage — a genuinely new visit should start fresh; only a
+  // same-tab reload/poor-connectivity retry should return to where the
+  // person was).
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("kokromoti_session_state_v1");
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.navPanel) setNavPanel(saved.navPanel);
+      if (saved.electionType) setElectionType(saved.electionType);
+      if (saved.electionYear) setElectionYear(saved.electionYear);
+      if (saved.regionFocus !== undefined) setRegionFocus(saved.regionFocus);
+      if (saved.selectedConstituency !== undefined) setSelectedConstituency(saved.selectedConstituency);
+      if (saved.constituencyInitialTab) setConstituencyInitialTab(saved.constituencyInitialTab);
+      if (typeof saved.searchQuery === "string") setSearchQuery(saved.searchQuery);
+    } catch {
+      // Corrupted/unavailable storage — fall back to normal defaults, not an error.
+    }
+  }, []);
+
+  // Persist on every change to the state that defines "which screen the
+  // person is looking at" — cheap, synchronous, no debounce needed.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("kokromoti_session_state_v1", JSON.stringify({
+        navPanel, electionType, electionYear, regionFocus, selectedConstituency, constituencyInitialTab, searchQuery,
+      }));
+    } catch {
+      // Storage unavailable (private browsing, quota, etc.) — non-fatal, just skip persisting.
+    }
+  }, [navPanel, electionType, electionYear, regionFocus, selectedConstituency, constituencyInitialTab, searchQuery]);
 
   function handleNavChange(panel: NavPanel) {
     if (panel !== "regions") setRegionFocus(null);
@@ -93,6 +127,7 @@ function AppShell() {
                 electionYear={electionYear}
                 searchQuery={searchQuery}
                 onSelectConstituency={(c) => { setConstituencyInitialTab("summary"); setSelectedConstituency(c); }}
+                onNavigateToRegion={(region) => { setRegionFocus(region); setNavPanel("regions"); }}
               />
             )}
           </div>
