@@ -32,7 +32,7 @@ export default function FavouritesPanel({
   onSelectConstituency: (c: SelectedConstituency) => void;
 }) {
   const { user, openModal, logout } = useAuth();
-  const { favouritedIds } = useFavourites();
+  const { isFavourited } = useFavourites();
   const [groups, setGroups] = useState<RegionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function FavouritesPanel({
         for (const seat of seats) {
           const g = geoByName.get(seat.constituency.name);
           const constituencyId = g?.id ?? "";
-          if (!constituencyId || !favouritedIds.has(constituencyId)) continue; // the actual "favourites" filter
+          if (!constituencyId || !isFavourited("CONSTITUENCY", constituencyId)) continue; // the actual "favourites" filter
           const regionShortName = g?.region.shortName ?? "Other";
           // Same era-matching principle ResultsPanel uses: based on the
           // actual year shown (electionYear), not electionType — stays
@@ -77,7 +77,7 @@ export default function FavouritesPanel({
       .finally(() => !cancelled && setLoading(false));
 
     return () => { cancelled = true; };
-  }, [user, electionType, electionYear, favouritedIds]);
+  }, [user, electionType, electionYear, isFavourited]);
 
   if (!user) {
     return (
