@@ -184,7 +184,7 @@ function AppShell() {
           </div>
           <div className={`panel ${navPanel === "regions" ? "active" : ""}`}>
             {navPanel === "regions" && (
-              <RegionsPanel electionType={electionType} electionYear={electionYear} regionFocus={regionFocus} onSelectConstituency={handleSelectConstituencyFromMap} />
+              <RegionsPanel electionType={electionType} electionYear={electionYear} regionFocus={regionFocus} onSelectConstituency={handleSelectConstituencyFromMap} onFocusRegion={setRegionFocus} />
             )}
           </div>
           <div className={`panel ${navPanel === "ghana" ? "active" : ""}`}>
