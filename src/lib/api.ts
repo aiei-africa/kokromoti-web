@@ -108,12 +108,16 @@ export const api = {
   constituenciesGeo: () => apiFetch<ConstituencyGeo[]>("/geography/constituencies"),
   presidentialNational: (electionCode: string) =>
     apiFetch<PresidentialNational>(`/results/presidential/${electionCode}`),
+  presidentialRegional: (electionCode: string, regionId: string) =>
+    apiFetch<PresidentialNational>(`/results/presidential/${electionCode}/region/${regionId}`),
   presidentialByConstituency: (electionCode: string) =>
     apiFetch<ConstituencySeatResult[]>(`/results/presidential/${electionCode}/by-constituency`),
   presidentialConstituency: (electionCode: string, constituencyId: string) =>
     apiFetch<ConstituencyFullResult>(`/results/presidential/${electionCode}/${constituencyId}`),
   parliamentarySummary: (electionCode: string) =>
     apiFetch<ParliamentarySummary>(`/results/parliamentary/${electionCode}/summary`),
+  parliamentaryRegionalSummary: (electionCode: string, regionId: string) =>
+    apiFetch<ParliamentarySummary>(`/results/parliamentary/${electionCode}/region/${regionId}/summary`),
   parliamentaryAllSeats: (electionCode: string) =>
     apiFetch<ConstituencySeatResult[]>(`/results/parliamentary/${electionCode}`),
   parliamentaryConstituency: (electionCode: string, constituencyId: string) =>
