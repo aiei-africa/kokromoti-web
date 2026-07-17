@@ -2,30 +2,47 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { api, type PresidentialNational, type ParliamentarySummary } from "@/lib/api";
-
 import CandidateResultRow from "../CandidateResultRow";
 
 const MapExplorer = dynamic(() => import("../MapExplorer"), { ssr: false });
 
-// Shows both election types simultaneously (unlike Results, which is
-// tab-scoped to one type at a time) — so it independently tracks each
-// type's own current year rather than depending on any outer tab state.
+// UPDATED (17 Jul 2026): summary content is now fully type-scoped to the
+// active Presidential/Parliamentary tab, matching every other panel
+// (Results, Regions) instead of always showing both simultaneously. Under
+// Parliamentary, the candidate-list-style block now shows PARTIES (full
+// name, not a person — no single candidate represents a party's national
+// parliamentary result) with their TOTAL SUMMED VOTES across every
+// parliamentary candidate of that party — a genuinely different, real
+// metric from seats won (they diverge under FPTP), shown alongside the
+// real seat tally with its majority badge.
 export default function GhanaPanel({ electionType, electionYear, onNavigateToRegion }: { electionType: "presidential" | "parliamentary"; electionYear: string; onNavigateToRegion: (regionName: string) => void }) {
-  const [national, setNational] = useState<PresidentialNational | null>(null);
+  const [presidential, setPresidential] = useState<PresidentialNational | null>(null);
+  const [votesByParty, setVotesByParty] = useState<PresidentialNational | null>(null);
   const [seatSummary, setSeatSummary] = useState<ParliamentarySummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      api.presidentialNational(electionYear).catch(() => null),
-      api.parliamentarySummary(electionYear).catch(() => null),
-    ]).then(([n, s]) => {
-      setNational(n);
-      setSeatSummary(s);
-      setLoading(false);
-    });
-  }, [electionYear]);
+    setPresidential(null);
+    setVotesByParty(null);
+    setSeatSummary(null);
+
+    if (electionType === "presidential") {
+      api.presidentialNational(electionYear).catch(() => null).then((n) => {
+        setPresidential(n);
+        setLoading(false);
+      });
+    } else {
+      Promise.all([
+        api.parliamentaryVotesByParty(electionYear).catch(() => null),
+        api.parliamentarySummary(electionYear).catch(() => null),
+      ]).then(([v, s]) => {
+        setVotesByParty(v);
+        setSeatSummary(s);
+        setLoading(false);
+      });
+    }
+  }, [electionType, electionYear]);
 
   return (
     <div id="panel-ghana">
@@ -35,16 +52,25 @@ export default function GhanaPanel({ electionType, electionYear, onNavigateToReg
       </div>
 
       <div style={{ padding: "0" }}>
-        {national && (
+        {electionType === "presidential" && presidential && presidential.results.length > 0 && (
           <div className="constituency-row">
             <div className="row-top">
-              <div className="constituency-name">Presidential — {national.election}</div>
+              <div className="constituency-name">Presidential — {presidential.election}</div>
             </div>
-            <CandidateResultRow results={national.results} />
+            <CandidateResultRow results={presidential.results} />
           </div>
         )}
 
-        {seatSummary && (
+        {electionType === "parliamentary" && votesByParty && votesByParty.results.length > 0 && (
+          <div className="constituency-row">
+            <div className="row-top">
+              <div className="constituency-name">Parliamentary — {votesByParty.election} — Total Votes by Party</div>
+            </div>
+            <CandidateResultRow results={votesByParty.results} />
+          </div>
+        )}
+
+        {electionType === "parliamentary" && seatSummary && seatSummary.declaredSeats > 0 && (
           <div className="constituency-row">
             <div className="row-top">
               <div className="constituency-name">
@@ -71,9 +97,11 @@ export default function GhanaPanel({ electionType, electionYear, onNavigateToReg
           </div>
         )}
 
-        {!national && !seatSummary && !loading && (
-          <div className="no-results">No national data available yet.</div>
-        )}
+        {!loading &&
+          ((electionType === "presidential" && (!presidential || presidential.results.length === 0)) ||
+            (electionType === "parliamentary" && (!votesByParty || votesByParty.results.length === 0) && (!seatSummary || seatSummary.declaredSeats === 0))) && (
+            <div className="no-results">No national data available yet.</div>
+          )}
       </div>
 
       <div style={{ padding: "0 0 80px" }}>

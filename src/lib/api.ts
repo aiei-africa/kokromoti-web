@@ -118,6 +118,10 @@ export const api = {
     apiFetch<ParliamentarySummary>(`/results/parliamentary/${electionCode}/summary`),
   parliamentaryRegionalSummary: (electionCode: string, regionId: string) =>
     apiFetch<ParliamentarySummary>(`/results/parliamentary/${electionCode}/region/${regionId}/summary`),
+  parliamentaryVotesByParty: (electionCode: string) =>
+    apiFetch<PresidentialNational>(`/results/parliamentary/${electionCode}/votes-by-party`),
+  parliamentaryRegionalVotesByParty: (electionCode: string, regionId: string) =>
+    apiFetch<PresidentialNational>(`/results/parliamentary/${electionCode}/region/${regionId}/votes-by-party`),
   parliamentaryAllSeats: (electionCode: string) =>
     apiFetch<ConstituencySeatResult[]>(`/results/parliamentary/${electionCode}`),
   parliamentaryConstituency: (electionCode: string, constituencyId: string) =>
