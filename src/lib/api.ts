@@ -103,8 +103,6 @@ export const api = {
   elections: () => apiFetch<Election[]>("/elections"),
   election: (code: string) => apiFetch<Election>(`/elections/${code}`),
   regions: () => apiFetch<Region[]>("/geography/regions"),
-  regionResults: (regionId: string, electionCode: string, type: "PRESIDENTIAL" | "PARLIAMENTARY") =>
-    apiFetch<RegionResults>(`/geography/regions/${regionId}/results/${electionCode}?type=${type}`),
   constituenciesGeo: () => apiFetch<ConstituencyGeo[]>("/geography/constituencies"),
   presidentialNational: (electionCode: string) =>
     apiFetch<PresidentialNational>(`/results/presidential/${electionCode}`),
