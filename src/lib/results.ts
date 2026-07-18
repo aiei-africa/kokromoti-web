@@ -20,7 +20,11 @@ export function currentElectionCodeFor(electionType: "presidential" | "parliamen
 // already covers any real data gaps for a given year/type without needing
 // a special case here. 2028 is listed but has no Election row yet — see
 // isElectionYearActive.
-export const ALL_ELECTION_CODES = ["1992", "1996", "2000", "2004", "2008", "2012", "2016", "2020", "2024", "2028"];
+// Newest-first, left to right — this is the SELECTOR order only (tabs).
+// The trend chart's own x-axis stays chronological (oldest -> newest,
+// left -> right) since that's how a time series should read; it uses its
+// own separate YEARS/allYears arrays in MapExplorer.tsx, untouched by this.
+export const ALL_ELECTION_CODES = ["2028", "2024", "2020", "2016", "2012", "2008", "2004", "2000", "1996", "1992"];
 
 export function isElectionYearActive(code: string): boolean {
   return code !== "2028";
