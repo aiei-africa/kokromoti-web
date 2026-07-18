@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { api, type ConstituencyFullResult, type ArchiveStation, type ConstituencyHistory, type CandidateResult } from "@/lib/api";
+import { api, type ConstituencyFullResult, type ArchiveStation, type CandidateResult } from "@/lib/api";
 
 import type { SelectedConstituency } from "@/app/page";
 
@@ -17,230 +17,12 @@ function initialsOf(name: string) {
   return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
 }
 
-type TrendPoint = { year: number; electionCode: string; votePct: number; provisional: boolean };
-type TrendSeries = { colourHex: string | null; points: TrendPoint[] };
-
-// Self-contained SVG line chart — no charting library in this project, and
-// three lines over ~9 points doesn't need one. Y-axis auto-scales to the
-// real data range (not fixed 0-100) so the actual movement is visible
-// rather than compressed flat. Provisional points (1992) render hollow,
-// not filled, so the source caveat stays visible in the chart itself,
-// not just in a footnote beneath it.
-// Interactive SVG line chart — no charting library in this project, and
-// three lines over ~9 points doesn't need one. Y-axis auto-scales to the
-// real data range so movement is actually visible. Provisional points
-// (1992) render hollow, not filled. Every point is tappable — the visible
-// dot is small, but each carries an invisible, much larger touch target
-// (r=14) around it, since a 3.5px circle is not a reliable mobile tap
-// Interactive SVG line chart with a floating tooltip. No charting library
-// in this project, and three lines over ~9 points doesn't need one.
-// Y-axis auto-scales to the real data range so movement is actually
-// visible. Provisional points (1992) render hollow, not filled. Tapping a
-// point opens a tooltip anchored near that point — there is no separate
-// detail block or table anywhere on the page; the tooltip IS the detail
-// view. The tooltip itself is a normal HTML element positioned absolutely
-// over the chart (not rendered inside the SVG via foreignObject), so it
-// can grow to whatever height its content actually needs — an 8-candidate
-// year is roughly twice the chart's own height, and a foreignObject-based
-// tooltip would overflow past the SVG's box and bleed into the legend/hint
-// text below it; a normal HTML block in normal document flow doesn't have
-// that failure mode. Tapping the same point again closes it; tapping a
-// different point moves it there.
-function HistoryTrendChart({ history, trend, allYears }: { history: ConstituencyHistory["history"]; trend: ConstituencyHistory["trend"]; allYears: number[] }) {
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
-  // Hover previews a point's tooltip on desktop (mouse only — touch devices
-  // don't fire mouseenter/mouseleave reliably, so mobile tap-to-pin below
-  // is unaffected). A pinned point (selectedCode, set by clicking) takes
-  // priority over hover, so hovering elsewhere never disturbs a pin.
-  const [hoveredCode, setHoveredCode] = useState<string | null>(null);
-  const activeCode = selectedCode ?? hoveredCode;
-  const chartRef = useRef<HTMLDivElement>(null);
-  const W = 600, H = 220, PAD_L = 34, PAD_R = 12, PAD_T = 14, PAD_B = 24;
-  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
-
-  // Guard: `history` being truthy at the call site does not guarantee
-  // `history.trend` is fully populated — constituencies with no computable
-  // trend (e.g. Ablekuma North's 2024 presidential row, whose vote fields
-  // are genuinely null) return a history array with an absent/incomplete
-  // trend object. MapExplorer.tsx already guards this exact shape;
-  // HistoryTrendChart did not, causing the real production crash:
-  // "Cannot read properties of undefined (reading 'NDC')".
-  if (!trend || !trend.NDC || !trend.NPP || !trend.Others) {
-    return (
-      <div className="tap-hint" style={{ padding: 24 }}>
-        No historical trend data available for this constituency.
-      </div>
-    );
-  }
-
-  const series: { key: "NDC" | "NPP" | "Others"; s: TrendSeries; colour: string }[] = [
-    { key: "NDC", s: trend.NDC, colour: trend.NDC.colourHex || "#2e7d4f" },
-    { key: "NPP", s: trend.NPP, colour: trend.NPP.colourHex || "#163488" },
-    { key: "Others", s: trend.Others, colour: trend.Others.colourHex || "#9db0cc" },
-  ];
-
-  const allPct = series.flatMap((s) => s.s.points.map((p) => p.votePct));
-  if (allPct.length === 0) return null;
-  const yMin = Math.max(0, Math.floor(Math.min(...allPct) / 5) * 5 - 5);
-  const yMax = Math.min(100, Math.ceil(Math.max(...allPct) / 5) * 5 + 5);
-  const yRange = yMax - yMin || 1;
-
-  const xMin = Math.min(...allYears), xMax = Math.max(...allYears);
-  const xRange = xMax - xMin || 1;
-
-  const xPos = (year: number) => PAD_L + ((year - xMin) / xRange) * plotW;
-  const yPos = (pct: number) => PAD_T + plotH - ((pct - yMin) / yRange) * plotH;
-  const gridLines = [0, 0.25, 0.5, 0.75, 1].map((f) => yMin + f * yRange);
-
-  const selectedEntry = activeCode ? history.find((h) => h.electionCode === activeCode) : null;
-  const selectedPoint = activeCode ? series.flatMap((s) => s.s.points).find((p) => p.electionCode === activeCode) : null;
-
-  function handleTap(code: string) {
-    setSelectedCode((prev) => (prev === code ? null : code));
-  }
-
-  // Clicking anywhere outside the chart/tooltip dismisses a pinned point.
-  // mousedown (not click) is used so it never races with a point's own
-  // onClick — clicking a different point stays inside chartRef, so this
-  // never interferes with switching the pin from one point to another.
-  useEffect(() => {
-    if (!selectedCode) return;
-    function handleOutside(e: MouseEvent) {
-      if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
-        setSelectedCode(null);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [selectedCode]);
-
-  // Tooltip position — computed in the same 0-600/0-220 coordinate space as
-  // the chart, then expressed as percentages so it aligns with the SVG's
-  // own rendered box exactly. TT_H here is only a rough estimate used to
-  // decide whether the tooltip opens above or below the point — it no
-  // longer needs to be precise, because the tooltip is a normal HTML block
-  // now (not SVG content), so it grows to whatever height its actual
-  // content needs. That's the real fix for the previous bug: an 8-candidate
-  // tooltip was taller than the chart's own SVG box, so it overflowed past
-  // the SVG entirely and bled into the legend/hint text below it. A normal
-  // HTML element in normal document flow doesn't have that failure mode.
-  const TT_W = W * 0.96;
-  const candCount = selectedEntry ? Math.max(1, (selectedEntry.candidates ?? []).length) : 1;
-  const roughTTH = selectedEntry && (selectedEntry.candidates ?? []).length > 0 ? 46 + candCount * 38 : 50;
-  let ttX = 0, ttY = 0;
-  if (selectedPoint) {
-    const px = xPos(selectedPoint.year), py = yPos(selectedPoint.votePct);
-    ttX = px + TT_W / 2 > W - PAD_R ? W - PAD_R - TT_W : px - TT_W / 2 < PAD_L ? PAD_L : px - TT_W / 2;
-    ttY = py - roughTTH - 10 < PAD_T ? py + 14 : Math.max(PAD_T, py - roughTTH - 10);
-    ttX = Math.max(4, Math.min(ttX, W - TT_W - 4));
-  }
-
-  return (
-    <div style={{ padding: "12px 16px 4px" }}>
-      <div style={{ position: "relative" }} ref={chartRef}>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", touchAction: "manipulation" }}>
-        {gridLines.map((pct) => (
-          <g key={pct}>
-            <line x1={PAD_L} x2={W - PAD_R} y1={yPos(pct)} y2={yPos(pct)} stroke="var(--line)" strokeWidth={0.5} opacity={0.5} />
-            <text x={PAD_L - 6} y={yPos(pct) + 3} textAnchor="end" fontSize={9} fill="var(--muted)">{Math.round(pct)}%</text>
-          </g>
-        ))}
-        {allYears.map((y) => {
-          const isSel = selectedPoint?.year === y;
-          return <text key={y} x={xPos(y)} y={H - 8} textAnchor="middle" fontSize={9} fill={isSel ? "var(--gold)" : "var(--muted)"} fontWeight={isSel ? 700 : 400}>{y}</text>;
-        })}
-        {series.map(({ key, s, colour }) => {
-          if (s.points.length === 0) return null;
-          const sorted = [...s.points].sort((a, b) => a.year - b.year);
-          const path = sorted.map((p, i) => `${i === 0 ? "M" : "L"} ${xPos(p.year)} ${yPos(p.votePct)}`).join(" ");
-          return (
-            <g key={key}>
-              <path d={path} fill="none" stroke={colour} strokeWidth={2} opacity={0.9} />
-              {sorted.map((p) => {
-                const isSelected = p.electionCode === activeCode;
-                return (
-                  <g
-                    key={p.electionCode}
-                    onClick={() => handleTap(p.electionCode)}
-                    onMouseEnter={() => setHoveredCode(p.electionCode)}
-                    onMouseLeave={() => setHoveredCode((prev) => (prev === p.electionCode ? null : prev))}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {/* invisible, larger touch target — the visible dot alone is too small to tap reliably on mobile */}
-                    <circle cx={xPos(p.year)} cy={yPos(p.votePct)} r={14} fill="transparent" />
-                    <circle
-                      cx={xPos(p.year)} cy={yPos(p.votePct)} r={isSelected ? 5.5 : 3.5}
-                      fill={colour}
-                      stroke={colour} strokeWidth={isSelected ? 2 : 0}
-                    />
-                  </g>
-                );
-              })}
-            </g>
-          );
-        })}
-        </svg>
-
-        {selectedEntry && selectedPoint && (
-          <div
-            style={{
-              position: "absolute",
-              left: `${(ttX / W) * 100}%`,
-              top: `${(ttY / H) * 100}%`,
-              width: `${(TT_W / W) * 100}%`,
-              zIndex: 20,
-              background: "#ffffff", border: "1px solid #d5dae3", borderRadius: 8, boxSizing: "border-box",
-              padding: "12px 14px", boxShadow: "0 6px 24px rgba(0,0,0,0.45)", fontFamily: "inherit",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, paddingBottom: 6, borderBottom: "2px solid #0a1220" }}>
-              <span style={{ color: "#0a1220", fontSize: 17, fontWeight: 800 }}>
-                {selectedEntry.year}
-              </span>
-              {selectedEntry.margin != null && <span style={{ fontSize: 12, color: "#0a1220", fontWeight: 600 }}>margin +{selectedEntry.margin.toFixed(2)}pt</span>}
-            </div>
-            {(selectedEntry.candidates ?? []).length === 0 ? (
-              <div style={{ color: "#5C6E8A", fontSize: 13, fontStyle: "italic" }}>No data on record for {selectedEntry.year}.</div>
-            ) : (
-              <>
-                {selectedEntry.candidates.map((c) => (
-                  <div key={c.fullName} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, fontSize: 13.5, padding: "6px 0", borderBottom: "1px solid #eef1f5", color: "#0a1220" }}>
-                    <span style={{ display: "flex", gap: 6, minWidth: 0, flex: 1 }}>
-                      <span style={{ color: c.colourHex || FALLBACK_COLOUR, fontWeight: 800, flexShrink: 0, fontSize: 12 }}>{c.party ?? "IND"}</span>
-                      <span style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.35, fontWeight: 500 }}>{c.fullName}</span>
-                    </span>
-                    <span style={{ flexShrink: 0, textAlign: "right", whiteSpace: "nowrap" }}>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{c.votes.toLocaleString()}</div>
-                      <div style={{ fontSize: 11, color: "#5C6E8A" }}>{c.votePct.toFixed(2)}%</div>
-                    </span>
-                  </div>
-                ))}
-                <div style={{ marginTop: 8, paddingTop: 8, borderTop: "2px solid #0a1220", fontSize: 12, color: "#0a1220", lineHeight: 1.7 }}>
-                  {selectedEntry.registeredVoters != null && <div><strong>{selectedEntry.registeredVoters.toLocaleString()}</strong> registered{selectedEntry.turnoutPct != null && <> · <strong>{selectedEntry.turnoutPct.toFixed(2)}%</strong> turnout</>}</div>}
-                  {(selectedEntry.totalCast != null || selectedEntry.validVotes != null) && (
-                    <div>
-                      {selectedEntry.totalCast != null && <><strong>{selectedEntry.totalCast.toLocaleString()}</strong> cast</>}
-                      {selectedEntry.validVotes != null && <> · <strong>{selectedEntry.validVotes.toLocaleString()}</strong> valid</>}
-                      {selectedEntry.rejectedBallots != null && <> · <strong>{selectedEntry.rejectedBallots.toLocaleString()}</strong> rejected</>}
-                    </div>
-                  )}
-                  {selectedEntry.stationsTotal != null && (
-                    <div><strong>{selectedEntry.stationsReporting ?? "?"}/{selectedEntry.stationsTotal}</strong> stations reporting</div>
-                  )}
-                </div>
-                {selectedEntry.notes && (
-                  <div style={{ marginTop: 8, padding: "7px 9px", background: "#fdf3e0", border: "1px solid #e0a83e", borderRadius: 5, fontSize: 11.5, color: "#8a5a10", lineHeight: 1.5 }}>
-                    ⚠ {selectedEntry.notes}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// NOTE (audit, 17 Jul 2026): the old HistoryTrendChart component (SVG line
+// chart + tooltip, ~200 lines) that used to live here was removed — it had
+// been fully dead code since the "history" tab was switched over to
+// MapExplorer (which fetches and renders its own trend chart). Nothing in
+// this file called it any longer; ConstituencyHistory/TrendPoint/TrendSeries
+// types and their only consumer are gone together.
 
 export default function ConstituencyDrilldown({
   constituency, electionType, electionYear, onClose, initialTab,
@@ -273,7 +55,16 @@ export default function ConstituencyDrilldown({
       setFacts(detail?.facts ?? null);
       setLoading(false);
     });
-  }, [constituency.id, electionType]);
+
+    // AUDIT FIX (17 Jul 2026): electionCode was read above but missing from
+    // this dependency array — switching years via ElectionYearTabs while a
+    // constituency drilldown was already open never re-fetched, silently
+    // showing stale data from whichever year was active when it first
+    // opened. Also reset stations here, so the Stations tab's own effect
+    // (below) correctly refetches for the new year too, instead of keeping
+    // whatever it last loaded under its own now-stale !stations guard.
+    setStations(null);
+  }, [constituency.id, electionType, electionCode]);
 
   useEffect(() => {
     if (tab === "stations" && !stations) {
@@ -285,7 +76,7 @@ export default function ConstituencyDrilldown({
       const fetchStations = electionCode === "2024" ? api.stationsCurrent(constituency.id) : api.stationsArchive(constituency.id);
       fetchStations.then(setStations).catch(() => setStations([]));
     }
-  }, [tab, constituency.id, electionType, stations]);
+  }, [tab, constituency.id, electionType, electionCode, stations]);
 
   const sortedVotes = result?.votes ? [...result.votes].sort((a, b) => b.votePct - a.votePct) : [];
   const leader = sortedVotes[0];
