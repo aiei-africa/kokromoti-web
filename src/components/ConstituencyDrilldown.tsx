@@ -12,6 +12,7 @@ const FALLBACK_COLOUR = "#5C6E8A";
 
 function partyOf(c: CandidateResult) { return c.candidate?.party ?? c.party ?? null; }
 function nameOf(c: CandidateResult) { return c.candidate?.fullName ?? c.fullName ?? "Unknown"; }
+function photoOf(c: CandidateResult) { return c.candidate?.photoUrl ?? null; }
 function initialsOf(name: string) {
   const parts = name.replace(/^(Dr\.|Nana|Hon\.)\s+/i, "").split(" ").filter(Boolean);
   return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
@@ -110,6 +111,17 @@ export default function ConstituencyDrilldown({
           <>
             {leader && (
               <div className="dd-leader-banner">
+                {photoOf(leader) ? (
+                  <img
+                    src={photoOf(leader)!}
+                    alt=""
+                    style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${partyOf(leader)?.colourHex || FALLBACK_COLOUR}55` }}
+                  />
+                ) : (
+                  <div className="dd-cand-avatar" style={{ background: `${partyOf(leader)?.colourHex || FALLBACK_COLOUR}22`, color: partyOf(leader)?.colourHex || FALLBACK_COLOUR, border: `1px solid ${partyOf(leader)?.colourHex || FALLBACK_COLOUR}55` }}>
+                    {initialsOf(nameOf(leader))}
+                  </div>
+                )}
                 <div
                   className="dd-leader-party"
                   style={{ background: `${partyOf(leader)?.colourHex || FALLBACK_COLOUR}22`, color: partyOf(leader)?.colourHex || FALLBACK_COLOUR, border: `1px solid ${partyOf(leader)?.colourHex || FALLBACK_COLOUR}55` }}
@@ -129,9 +141,18 @@ export default function ConstituencyDrilldown({
                 const colour = party?.colourHex || FALLBACK_COLOUR;
                 return (
                   <div className="dd-cand-row" key={party?.abbreviation ?? nameOf(c)}>
-                    <div className="dd-cand-avatar" style={{ background: `${colour}22`, color: colour, border: `1px solid ${colour}55` }}>
-                      {initialsOf(nameOf(c))}
-                    </div>
+                    {photoOf(c) ? (
+                      <img
+                        src={photoOf(c)!}
+                        alt=""
+                        className="dd-cand-avatar"
+                        style={{ objectFit: "cover", border: `1px solid ${colour}55` }}
+                      />
+                    ) : (
+                      <div className="dd-cand-avatar" style={{ background: `${colour}22`, color: colour, border: `1px solid ${colour}55` }}>
+                        {initialsOf(nameOf(c))}
+                      </div>
+                    )}
                     <div className="dd-cand-pill" style={{ background: `${colour}22`, color: colour, border: `1px solid ${colour}55` }}>
                       {party?.abbreviation ?? "IND"}
                     </div>

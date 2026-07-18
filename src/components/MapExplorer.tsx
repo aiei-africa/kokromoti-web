@@ -5,6 +5,10 @@ import "leaflet/dist/leaflet.css";
 import { api } from "@/lib/api";
 
 const FALLBACK_COLOUR = "#5C6E8A";
+function initialsOf(name: string) {
+  const parts = name.replace(/^(Dr\.|Nana|Hon\.|Prof\.|Flt\.|Lt\.)\s+/i, "").split(" ").filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
+}
 const PARTY_COLOUR: Record<string, string> = { NDC: "#1B6B3A", NPP: "#003082" };
 const YEARS = ["1996", "2000", "2004", "2008", "2012", "2016", "2020", "2024"];
 const FALLBACK_BOUNDS = L.latLngBounds([4.3, -3.6], [11.5, 1.5]);
@@ -19,7 +23,7 @@ interface TrendResponse {
   scope: string;
   history: {
     electionCode: string; year: number;
-    candidates: { name: string; party: string | null; colourHex: string | null; votes: number; votePct: number }[];
+    candidates: { name: string; party: string | null; colourHex: string | null; photoUrl: string | null; votes: number; votePct: number }[];
     registeredVoters: number | null; totalCast: number | null; validVotes: number | null;
     rejectedBallots: number | null; turnoutPct: number | null; margin: number | null;
   }[];
@@ -374,7 +378,14 @@ function TrendChart({ data, selectedYear, onSelectYear }: { data: TrendResponse;
               <>
                 {selectedEntry.candidates.map((c) => (
                   <div key={c.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, fontSize: 13.5, padding: "6px 0", borderBottom: "1px solid #eef1f5", color: "#0a1220" }}>
-                    <span style={{ display: "flex", gap: 6, minWidth: 0, flex: 1 }}>
+                    <span style={{ display: "flex", gap: 6, minWidth: 0, flex: 1, alignItems: "center" }}>
+                      {c.photoUrl ? (
+                        <img src={c.photoUrl} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${c.colourHex || FALLBACK_COLOUR}55` }} />
+                      ) : (
+                        <span style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, background: `${c.colourHex || FALLBACK_COLOUR}22`, color: c.colourHex || FALLBACK_COLOUR, border: `1px solid ${c.colourHex || FALLBACK_COLOUR}55` }}>
+                          {initialsOf(c.name)}
+                        </span>
+                      )}
                       <span style={{ color: c.colourHex || FALLBACK_COLOUR, fontWeight: 800, flexShrink: 0, fontSize: 12 }}>{c.party ?? "IND"}</span>
                       <span style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.35, fontWeight: 500 }}>{c.name}</span>
                     </span>

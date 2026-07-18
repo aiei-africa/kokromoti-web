@@ -26,7 +26,7 @@ export interface Region {
   _count: { constituencies: number; districts: number };
 }
 export interface CandidateResult {
-  candidate?: { id?: string; fullName: string; party: { abbreviation: string; colourHex: string | null } | null };
+  candidate?: { id?: string; fullName: string; photoUrl?: string | null; party: { abbreviation: string; colourHex: string | null } | null };
   fullName?: string; party?: { abbreviation: string; colourHex: string | null } | null;
   votes: number; votePct: number;
 }
