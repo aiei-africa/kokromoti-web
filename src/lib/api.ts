@@ -133,8 +133,6 @@ export const api = {
     apiFetch<ArchiveStation[]>(`/geography/constituencies/${constituencyId}/stations-archive`),
   stationsCurrent: (constituencyId: string) =>
     apiFetch<ArchiveStation[]>(`/geography/constituencies/${constituencyId}/stations-current`),
-  constituencyHistory: (constituencyId: string, type: "PRESIDENTIAL" | "PARLIAMENTARY") =>
-    apiFetch<ConstituencyHistory>(`/results/history/${constituencyId}?type=${type}`),
 
   register: (data: { email: string; password: string; fullName: string; phone?: string }) =>
     apiFetch("/auth/register", { method: "POST", body: JSON.stringify(data) }),
