@@ -150,6 +150,7 @@ export default function ResultsPanel({
                   key={seat.constituency.ecCode}
                   onClick={() => seat.constituencyId && onSelectConstituency({
                     id: seat.constituencyId, name: seat.constituency.name, regionName: group.shortName,
+                    ecCode: seat.constituency.ecCode,
                   })}
                   style={{ cursor: "pointer" }}
                 >

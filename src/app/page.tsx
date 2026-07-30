@@ -15,8 +15,14 @@ import AuthModal from "@/components/AuthModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import { currentElectionCodeFor } from "@/lib/results";
+import { slugify, fetchConstituencyEcCodeMap } from "@/lib/seo-api";
 
-export interface SelectedConstituency { id: string; name: string; regionName: string; }
+// ecCode is optional because the map/RegionsPanel selection path doesn't
+// carry it inline (GeoJSON features only have id/name/region) — it gets
+// backfilled from ecCodeById below when available. ResultsPanel and
+// FavouritesPanel both already have it at selection time and pass it
+// straight through.
+export interface SelectedConstituency { id: string; name: string; regionName: string; ecCode?: string; }
 
 function AppShell() {
   const [showSplash, setShowSplash] = useState(true);
@@ -38,6 +44,18 @@ function AppShell() {
   // navigation. Direct navigation (handleNavChange below) clears this, so
   // tapping "Regions" normally still shows the existing full card list.
   const [regionFocus, setRegionFocus] = useState<string | null>(null);
+  // id -> ecCode, fetched once. Only needed to backfill the map-selection
+  // path (handleSelectConstituencyFromMap) so shared links from that path
+  // can still point at the real indexable /results/[year]/[constituency]
+  // route instead of falling back to the query-param URL.
+  const [ecCodeById, setEcCodeById] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetchConstituencyEcCodeMap().then(setEcCodeById).catch(() => {
+      // Non-fatal — share links from the map path just fall back to the
+      // query-param URL below if this never resolves.
+    });
+  }, []);
 
   // Restore the last-viewed screen once, on mount, from sessionStorage —
   // NOT survives full browser close (by design: sessionStorage, not
@@ -72,7 +90,10 @@ function AppShell() {
       if (type === "presidential" || type === "parliamentary") setElectionType(type);
       if (year) setElectionYear(year);
       if (cid) {
-        setSelectedConstituency({ id: cid, name: params.get("cname") ?? "", regionName: params.get("cregion") ?? "" });
+        setSelectedConstituency({
+          id: cid, name: params.get("cname") ?? "", regionName: params.get("cregion") ?? "",
+          ecCode: params.get("cec") ?? undefined,
+        });
         setConstituencyInitialTab("summary");
       } else if (panel === "results" || panel === "live" || panel === "favourites" || panel === "regions" || panel === "ghana") {
         setNavPanel(panel as NavPanel);
@@ -101,6 +122,7 @@ function AppShell() {
         params.set("cid", selectedConstituency.id);
         params.set("cname", selectedConstituency.name);
         params.set("cregion", selectedConstituency.regionName);
+        if (selectedConstituency.ecCode) params.set("cec", selectedConstituency.ecCode);
       } else {
         params.set("panel", navPanel);
       }
@@ -117,7 +139,7 @@ function AppShell() {
 
   function handleSelectConstituencyFromMap(id: string, name: string, regionName: string | null) {
     setConstituencyInitialTab("history");
-    setSelectedConstituency({ id, name, regionName: regionName ?? "" });
+    setSelectedConstituency({ id, name, regionName: regionName ?? "", ecCode: ecCodeById[id] });
   }
 
   return (
@@ -211,13 +233,21 @@ function AppShell() {
       <ShareButton
         getShareData={(): ShareData => {
           const origin = typeof window !== "undefined" ? window.location.origin : "https://app.aiei-africa.org";
+
           if (selectedConstituency) {
-            const params = new URLSearchParams({
-              panel: "constituency", type: electionType, year: electionYear,
-              cid: selectedConstituency.id, cname: selectedConstituency.name, cregion: selectedConstituency.regionName,
-            });
+            const ecCode = selectedConstituency.ecCode ?? ecCodeById[selectedConstituency.id];
+            // Prefer the real indexable route — same URL a search result
+            // or the sitemap would point to. Falls back to the old
+            // query-param shell URL only if ecCode genuinely isn't
+            // resolvable yet (e.g. lookup map still loading).
+            const url = ecCode
+              ? origin + "/results/" + electionYear + "/" + slugify(selectedConstituency.name) + "-" + ecCode.toLowerCase()
+              : origin + "/?" + new URLSearchParams({
+                  panel: "constituency", type: electionType, year: electionYear,
+                  cid: selectedConstituency.id, cname: selectedConstituency.name, cregion: selectedConstituency.regionName,
+                }).toString();
             return {
-              url: origin + "/?" + params.toString(),
+              url,
               title: selectedConstituency.name + " — Kokromoti",
               text: selectedConstituency.name + " (" + selectedConstituency.regionName + ") — " + electionYear + " " + electionType + " results on Kokromoti.",
             };
