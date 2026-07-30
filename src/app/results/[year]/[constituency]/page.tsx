@@ -37,6 +37,13 @@ async function getRow(year: string, constituencySlug: string) {
   return { pres, parl };
 }
 
+// Independent candidates have no party — party is genuinely null on the
+// API, not just colourHex. Every render of a candidate's party label
+// must go through this.
+function partyLabel(party: { abbreviation: string } | null): string {
+  return party?.abbreviation ?? 'Independent';
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { pres, parl } = await getRow(params.year, params.constituency);
   const name = pres?.constituency.name ?? parl?.constituency.name;
@@ -68,9 +75,9 @@ export default async function ConstituencyResultPage({ params }: { params: Param
         <section>
           <h2>Presidential</h2>
           <ul>
-            {pres.results.map((c) => (
-              <li key={c.candidate.fullName}>
-                {c.candidate.fullName} ({c.candidate.party.abbreviation}): {c.votePct}%
+            {pres.results.map((c, i) => (
+              <li key={c.candidate.fullName + i}>
+                {c.candidate.fullName} ({partyLabel(c.candidate.party)}): {c.votePct}%
               </li>
             ))}
           </ul>
@@ -81,9 +88,9 @@ export default async function ConstituencyResultPage({ params }: { params: Param
         <section>
           <h2>Parliamentary</h2>
           <ul>
-            {parl.results.map((c) => (
-              <li key={c.candidate.fullName}>
-                {c.candidate.fullName} ({c.candidate.party.abbreviation}): {c.votePct}%
+            {parl.results.map((c, i) => (
+              <li key={c.candidate.fullName + i}>
+                {c.candidate.fullName} ({partyLabel(c.candidate.party)}): {c.votePct}%
               </li>
             ))}
           </ul>
